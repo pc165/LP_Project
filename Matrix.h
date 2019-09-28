@@ -23,7 +23,9 @@ class MatrixCSR {
 	inline void setRow(const int &e) { nRow_ = e; }
 	inline void setCol(const int &e) { nCol_ = e; }
 private:
-	float *col_, *value_, *rowIndex_;// L'ultim valor de "rowIndex_" es el nombre total de valors diferents a zero
+	void resize();
+	int *col_, *rowIndex_;// L'ultim valor de "rowIndex_" es el nombre total de valors diferents a zero
+	float *value_;
 	int sizeIndexRow_;
 	int nRow_, nCol_;
 };
