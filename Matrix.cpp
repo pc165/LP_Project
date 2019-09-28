@@ -1,11 +1,8 @@
 #include "Matrix.h"
 #include <iostream>
 
-MatrixCSR::MatrixCSR():col_(nullptr), value_(nullptr), rowIndex_(nullptr), nRow_(0), nCol_(0) {
-	rowIndex_ = new int[1];
-	value_ = new float[0];
-	col_ = new int[0];
-	rowIndex_[0] = 0;
+MatrixCSR::MatrixCSR() {
+	this->init(0, 0);
 }
 
 
