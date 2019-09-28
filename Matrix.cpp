@@ -1,53 +1,85 @@
 #include "Matrix.h"
+#include <iostream>
 
-MatrixCSR::MatrixCSR(const int &row, const int &col):col_(nullptr), value_(nullptr), rowIndex_(nullptr), nRow_(row), nCol_(col), sizeIndexRow_(0) {
+MatrixCSR::MatrixCSR():col_(nullptr), value_(nullptr), rowIndex_(nullptr), nRow_(0), nCol_(0) {
+	rowIndex_ = new int[1];
+	value_ = new float[0];
+	col_ = new int[0];
+	rowIndex_[0] = 0;// total de elements no zero
+}
+
+
+MatrixCSR::MatrixCSR(const int &row, const int &col):col_(nullptr), value_(nullptr), rowIndex_(nullptr), nRow_(row), nCol_(col) {
+	rowIndex_ = new int[nRow_ + 1];
+	// numero total de valors en la matriu
+	rowIndex_[nRow_] = 0;
+	// arrays de tamany 0
+	value_ = new float[0];
+	col_ = new int[0];
+	for (int i = 0; i < nRow_; i++)
+		rowIndex_[i] = 0;
 
 }
 
-MatrixCSR::MatrixCSR(const MatrixCSR &e) : nRow_(e.nRow_), nCol_(e.nCol_), sizeIndexRow_(e.sizeIndexRow_) {
+MatrixCSR::MatrixCSR(const MatrixCSR &e): nRow_(e.nRow_), nCol_(e.nCol_) {
+	rowIndex_ = new int[nRow_ + 1];
+	value_ = new float[e.rowIndex_[e.nRow_]];
+	col_ = new int[e.rowIndex_[e.nRow_]];
 
-	int totalValuesCol = 0;
-
-	totalValuesCol = int(e.rowIndex_[sizeIndexRow_ - 1]); // is always accesible?
-	value_ = new float[totalValuesCol];
-	col_ = new int[totalValuesCol];
-	rowIndex_ = new int[sizeIndexRow_];
-
-	for (int i = 0; i < totalValuesCol; i++) {
+	for (int i = 0; i < e.rowIndex_[e.nRow_]; i++) {
 		col_[i] = e.col_[i];
 		value_[i] = e.value_[i];
 	}
-	for (int i = 0; i < sizeIndexRow_; i++)
+	for (int i = 0; i < nRow_ + 1; i++)
 		rowIndex_[i] = e.rowIndex_[i];
 }
 
 void MatrixCSR::setValor(const int &row, const int &col, const float &value) {
+	if (row != nRow_) resizeRow(row);
 
 }
 
-void MatrixCSR::resize() {
+void MatrixCSR::resizeRow(const int &row) {
+	int *tempRowIndex = rowIndex_;
+	rowIndex_ = new int[row + 1];
+	rowIndex_[row] = tempRowIndex[nRow_];
 
-	int *tempIndex = rowIndex_;
-	rowIndex_ = new int[sizeIndexRow_ + 1];
+	for (int i = 0; i < (row > nRow_ ? nRow_ : row); i++)
+		rowIndex_[i] = tempRowIndex[i];
 
-	for (int i = 0; i < sizeIndexRow_; i++)
-		rowIndex_[i] = tempIndex[i];
+	nRow_ = row;
 
-	int newTotalValue = rowIndex_[sizeIndexRow_ - 1] = rowIndex_[sizeIndexRow_ - 2] + 1;
-	sizeIndexRow_++;
-	delete[]tempIndex;
+	delete[]tempRowIndex;
+}
 
-	int *tempCol = col_;
+void MatrixCSR::resizeCol(const int &col) {
+	int totalValue = rowIndex_[nRow_];
+
 	float *tempVal = value_;
+	int *tempCol = col_;
 
-	col_ = new int[newTotalValue];
-	value_ = new float[newTotalValue];
+	col_ = new int[totalValue];
+	value_ = new float[totalValue];
 
-	for (int i = 0; i < newTotalValue; i++) {
+	for (int i = 0; i < totalValue; i++) {
 		col_[i] = tempCol[i];
 		value_[i] = tempVal[i];
 	}
 
-	delete[]tempCol;
+	nCol_ = col;
+
 	delete[]tempVal;
+	delete[]tempCol;
+
+}
+
+std::ostream &operator<<(std::ostream &a, const MatrixCSR &e) {
+	for (int i = 0; i < e.rowIndex_[e.nRow_]; i++) {
+		for (int j = e.rowIndex_[i]; j < e.rowIndex_[i + 1]; j++) {
+			// imprimir zeros????
+			a << e.value_[j] << " ";
+		}
+		a << "\n";
+	}
+	return a;
 }
