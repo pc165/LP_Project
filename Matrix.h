@@ -6,24 +6,24 @@ public:
 	MatrixCSR();
 	MatrixCSR(const int &row, const int &col);
 	MatrixCSR(const MatrixCSR &e);
-	~MatrixCSR() { if (col_ != nullptr) delete[]col_; if (value_ != nullptr) delete[]value_; if (rowIndex_ != nullptr) delete[]rowIndex_; };
+	~MatrixCSR();
 	void setValor(const int &row, const int &col, const float &value); // ha de redimensionar la matriu a row y col conservant els valors
 	bool getValor(const int &row, const int &col, float &value) const;
 	void init(const int &row, const int &col);
-	void resizeRow(const int &row, const int &col);
 	friend std::ostream &operator<<(std::ostream &a, const MatrixCSR &e);
 	MatrixCSR operator+(const MatrixCSR &e);
 	MatrixCSR operator-(const MatrixCSR &e);
 	MatrixCSR operator*(const MatrixCSR &e);
 	MatrixCSR operator*(const float &e);
 	MatrixCSR operator/(const float &e);
-	MatrixCSR operator=(const MatrixCSR &e);
+	MatrixCSR &operator=(const MatrixCSR &e);
 
+	void setRow(const int &e) { resizeRow(e); }
+	void setCol(const int &e) { resizeCol(e); }
 	inline int getNFiles()const { return nRow_; }
 	inline int getNColumnes()const { return nCol_; }
-	inline void setRow(const int &e) { nRow_ = e; }
-	inline void setCol(const int &e) { nCol_ = e; }
 private:
+	void copy(const MatrixCSR& e);
 	void resizeRow(const int &row);
 	void resizeCol(const int &row);
 
@@ -33,6 +33,3 @@ private:
 	float *value_;
 	int nRow_, nCol_;
 };
-
-
-
