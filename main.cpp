@@ -14,13 +14,20 @@ int main() {
 	MatrixCSR c, d;
 	d = c = b;
 	c.setCol(1);
-	d.setRow(10);
+	//c.setRow(10); // bug
+	//d.setRow(10); // bug
 	cout << "\n\n\nMatriz C\n";
 	cout << c;
 
+
+	for (int i = 0; i < 20; i++) {
+		for (int j = 0; j < 10; j++) {
+			d.setValor(i, j, i);
+		}
+	}
+
 	cout << "\n\n\nMatriz d\n";
 	cout << d;
-
 	/*
 	const int ROW = 5, COL = 5;
 	float matrix[ROW][COL] = {

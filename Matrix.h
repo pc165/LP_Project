@@ -1,6 +1,11 @@
 #pragma once
 #include <vector>
 #include <iostream>
+typedef struct {
+	int col = 0;
+	float data = 0.0f;
+} colVal;
+
 class MatrixCSR {
 public:
 	MatrixCSR();
@@ -18,18 +23,17 @@ public:
 	MatrixCSR operator/(const float &e);
 	MatrixCSR &operator=(const MatrixCSR &e);
 
-	void setRow(const int &e) { resizeRow(e); }
-	void setCol(const int &e) { resizeCol(e); }
+	inline void setRow(const int &e) { nRow_ = e; }
+	inline void setCol(const int &e) { nCol_ = e; }
 	inline int getNFiles()const { return nRow_; }
 	inline int getNColumnes()const { return nCol_; }
 private:
-	void copy(const MatrixCSR& e);
-	void resizeRow(const int &row);
-	void resizeCol(const int &row);
+	void copy(const MatrixCSR &e);
 
 
 private:
-	int *col_, *rowIndex_; // L'ultim valor de "rowIndex_" es el nombre total de valors diferents a zero
-	float *value_;
+	std::vector<int> rowIndex_, rowNZV_; // L'ultim valor de "rowIndex_" es el nombre total de valors diferents a zero. rowNZV == row Non Zero Value
+	std::vector<colVal> colVal_;
 	int nRow_, nCol_;
+
 };

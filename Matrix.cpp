@@ -1,6 +1,8 @@
 #include "Matrix.h"
 #include <iostream>
 
+
+
 MatrixCSR::MatrixCSR() {
 	this->init(0, 0);
 }
@@ -15,87 +17,77 @@ MatrixCSR::MatrixCSR(const MatrixCSR &e) {
 }
 
 MatrixCSR::~MatrixCSR() {
-	if (col_ != nullptr) delete[]col_;
-	if (value_ != nullptr) delete[]value_;
-	if (rowIndex_ != nullptr) delete[]rowIndex_;
+
 }
 
 void MatrixCSR::copy(const MatrixCSR &e) {
 	nRow_ = e.nRow_;
 	nCol_ = e.nCol_;
-	rowIndex_ = new int[e.nRow_ + 1];
-	value_ = new float[e.rowIndex_[e.nRow_]];
-	col_ = new int[e.rowIndex_[e.nRow_]];
-
-	for (int i = 0; i < e.rowIndex_[e.nRow_]; i++) {
-		col_[i] = e.col_[i];
-		value_[i] = e.value_[i];
-	}
-	for (int i = 0; i < nRow_ + 1; i++)
-		rowIndex_[i] = e.rowIndex_[i];
+	rowIndex_ = e.rowIndex_;
+	colVal_ = e.colVal_;
+	rowNZV_ = e.rowNZV_;
 }
 
 
 void MatrixCSR::init(const int &row, const int &col) {
 	if (row < 0 || col < 0) throw "Error: Les columnes i files han de ser positius\n";
 
-	nRow_ = row; nCol_ = col;
-	rowIndex_ = new int[nRow_ + 1];
-	value_ = new float[0];
-	col_ = new int[0];
+	nRow_ = row;
+	nCol_ = col;
+	rowIndex_.resize(nRow_ + 1);
+	rowNZV_.resize(nRow_);
 	for (int i = 0; i < nRow_ + 1; i++)
 		rowIndex_[i] = 0;
 }
 
 
 void MatrixCSR::setValor(const int &row, const int &col, const float &value) {
-	if (row < 0 || col < 0) throw "Error: Les columnes i files han de ser positius\n";
-
-	if (row > nRow_) resizeRow(row);
-	if (col > nCol_) resizeCol(col);
-	//set valor...
-}
+	if (row < 0 || col < 0) throw "Error: Els indexs son negatius";
+	if (fabs(value - 0.0f) < FLT_EPSILON) return;
 
 
-void MatrixCSR::resizeRow(const int &row) {
-	int *tempRowIndex = rowIndex_;
-	rowIndex_ = new int[row + 1];
-	rowIndex_[row] = tempRowIndex[nRow_];
+	if (!(row < nRow_ && col < nCol_)) {
+		int tRow = row + 1;
+		int tCol = col + 1;
 
-	for (int i = 0; i < (row > nRow_ ? row : nRow_); i++)
-		rowIndex_[i] = tempRowIndex[i > nRow_ ? nRow_ : i];
+		rowNZV_.resize(tRow);
+		rowNZV_[row]++;
+		rowIndex_.resize(tRow + 1);
 
-	nRow_ = row;
+		for (int i = nRow_; i < tRow + 1; i++)
+			rowIndex_[i] = rowIndex_[i == 0 ? i : i - 1] + rowNZV_[i == 0 ? i : i - 1];
 
-	delete[]tempRowIndex;
-}
+		colVal_.insert(colVal_.begin() + rowIndex_[row], { col,value });
 
-void MatrixCSR::resizeCol(const int &col) {
-	int totalValue = rowIndex_[nRow_];
+		nRow_ = tRow;
+		nCol_ = tCol;
+	} else {
+		bool found = false;
+		int i = rowIndex_[row];
+		while (i < rowIndex_[row + 1] && !found) {
+			if (colVal_[i].col == col) {
+				colVal_[i].data = value;
+				found = true;
+			}
+			i++;
+		}
+		if (!found) {
+			colVal_.insert(colVal_.begin() + rowIndex_[row], { col,value });
+			for (int i = row + 1; i < nRow_ + 1; i++)
+				rowIndex_[i]++;
 
-	float *tempVal = value_;
-	int *tempCol = col_;
-
-	col_ = new int[totalValue];
-	value_ = new float[totalValue];
-
-	for (int i = 0; i < totalValue; i++) {
-		col_[i] = tempCol[i];
-		value_[i] = tempVal[i];
+		}
 	}
-
-	nCol_ = col;
-
-	delete[]tempVal;
-	delete[]tempCol;
-
 }
+
 
 std::ostream &operator<<(std::ostream &a, const MatrixCSR &e) {
-	float valor = 0;
+	float colVal = 0;
 	for (int i = 0; i < e.nRow_; i++) {
-		for (int j = 0; j < e.nCol_; j++)
-			a << (e.getValor(i, j, valor) ? valor : 0) << " ";
+		for (int j = 0; j < e.nCol_; j++) {
+			e.getValor(i, j, colVal);
+			a << colVal << " ";
+		}
 		a << "\n";
 	}
 	return a;
@@ -103,24 +95,24 @@ std::ostream &operator<<(std::ostream &a, const MatrixCSR &e) {
 
 
 bool MatrixCSR::getValor(const int &row, const int &col, float &value) const {
-	if (row > nRow_ || col > nCol_ || row < 0 || col < 0) throw "La seleccio esta fora de la matriu o son nombre negatius";
+	if (row < 0 || col < 0) throw "Error: Els indexs son negatius";
 
-	bool t = false;
-	int i = rowIndex_[row];
+	value = 0.0f;
+	if (row < nRow_ && col < nCol_)
+		for (int i = rowIndex_[row]; i < rowIndex_[row + 1]; i++)
+			if (colVal_[i].col == col) {
+				value = colVal_[i].data;
+				break;
+			}
 
-	while (i < rowIndex_[row + 1] && !t) {
-		if (col_[i] == col) {
-			value = value_[i];
-			t = true;
-		}
-		i++;
-	}
-	return t;
+	return  (row < nRow_ && col < nCol_);
 }
 
 
 MatrixCSR &MatrixCSR::operator=(const MatrixCSR &e) {
-	this->~MatrixCSR();
+	//this->~MatrixCSR();
 	this->copy(e);
 	return *this;
 }
+
+
