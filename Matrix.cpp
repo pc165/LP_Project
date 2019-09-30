@@ -25,7 +25,6 @@ void MatrixCSR::copy(const MatrixCSR &e) {
 	nCol_ = e.nCol_;
 	rowIndex_ = e.rowIndex_;
 	colVal_ = e.colVal_;
-	rowNZV_ = e.rowNZV_;
 }
 
 
@@ -35,7 +34,6 @@ void MatrixCSR::init(const int &row, const int &col) {
 	nRow_ = row;
 	nCol_ = col;
 	rowIndex_.resize(nRow_ + 1);
-	rowNZV_.resize(nRow_);
 	for (int i = 0; i < nRow_ + 1; i++)
 		rowIndex_[i] = 0;
 }
@@ -47,20 +45,18 @@ void MatrixCSR::setValor(const int &row, const int &col, const float &value) {
 
 
 	if (!(row < nRow_ && col < nCol_)) {
-		int tRow = row + 1;
-		int tCol = col + 1;
+		rowIndex_.resize(row + 2);
 
-		rowNZV_.resize(tRow);
-		rowNZV_[row]++;
-		rowIndex_.resize(tRow + 1);
-
-		for (int i = nRow_; i < tRow + 1; i++)
-			rowIndex_[i] = rowIndex_[i == 0 ? i : i - 1] + rowNZV_[i == 0 ? i : i - 1];
+		if (row == rowIndex_.size() - 2) {
+			for (int i = nRow_ + 1; i < row + 2; i++)
+				rowIndex_[i] = rowIndex_[i - 1];
+			rowIndex_[row + 1]++;
+		}
 
 		colVal_.insert(colVal_.begin() + rowIndex_[row], { col,value });
 
-		nRow_ = tRow;
-		nCol_ = tCol;
+		nRow_ = row + 1;
+		nCol_ = col + 1;
 	} else {
 		bool found = false;
 		int i = rowIndex_[row];
@@ -110,9 +106,17 @@ bool MatrixCSR::getValor(const int &row, const int &col, float &value) const {
 
 
 MatrixCSR &MatrixCSR::operator=(const MatrixCSR &e) {
-	//this->~MatrixCSR();
 	this->copy(e);
 	return *this;
 }
 
 
+void MatrixCSR::setRow(const int &e) {
+	if (e > nRow_ || e < 0) throw "Accio no permesa";
+	nRow_ = e;
+}
+
+void MatrixCSR::setCol(const int &e) {
+	if (e > nCol_ || e < 0) throw "Accio no permesa";
+	nCol_ = e;
+}

@@ -12,7 +12,7 @@ public:
 	MatrixCSR(const int &row, const int &col);
 	MatrixCSR(const MatrixCSR &e);
 	~MatrixCSR();
-	void setValor(const int &row, const int &col, const float &value); // ha de redimensionar la matriu a row y col conservant els valors
+	void setValor(const int &row, const int &col, const float &value);
 	bool getValor(const int &row, const int &col, float &value) const;
 	void init(const int &row, const int &col);
 	friend std::ostream &operator<<(std::ostream &a, const MatrixCSR &e);
@@ -23,8 +23,8 @@ public:
 	MatrixCSR operator/(const float &e);
 	MatrixCSR &operator=(const MatrixCSR &e);
 
-	inline void setRow(const int &e) { nRow_ = e; }
-	inline void setCol(const int &e) { nCol_ = e; }
+	void setRow(const int &e);
+	void setCol(const int &e);
 	inline int getNFiles()const { return nRow_; }
 	inline int getNColumnes()const { return nCol_; }
 private:
@@ -32,7 +32,7 @@ private:
 
 
 private:
-	std::vector<int> rowIndex_, rowNZV_; // L'ultim valor de "rowIndex_" es el nombre total de valors diferents a zero. rowNZV == row Non Zero Value
+	std::vector<int> rowIndex_;
 	std::vector<colVal> colVal_;
 	int nRow_, nCol_;
 
