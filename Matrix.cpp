@@ -112,11 +112,17 @@ MatrixCSR &MatrixCSR::operator=(const MatrixCSR &e) {
 
 
 void MatrixCSR::setRow(const int &e) {
-	if (e > nRow_ || e < 0) throw "Accio no permesa";
+	if (e > nRow_ || e < 0) throw "Accio no permesa, utilitzi init per agrandar la matriu";
 	nRow_ = e;
 }
 
 void MatrixCSR::setCol(const int &e) {
-	if (e > nCol_ || e < 0) throw "Accio no permesa";
+	if (e > nCol_ || e < 0) throw "Accio no permesa, utilitzi init per agrandar la matriu";
+	nCol_ = e;
+}
+
+void MatrixCSR::setRowCol(const int &a, const int &e) {
+	if (e > nCol_ || e < 0 || a>nRow_ || a < 0) throw "Accio no permesa, utilitzi init per agrandar la matriu";
+	nRow_ = a;
 	nCol_ = e;
 }
