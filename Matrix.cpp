@@ -1,5 +1,6 @@
 #include "Matrix.h"
 #include <iostream>
+#include <algorithm>
 
 
 
@@ -114,6 +115,8 @@ void MatrixCSR::setValor(const int &row, const int &col, const float &value) {
 		}
 
 		columnValors_.insert(columnValors_.begin() + rowIndex_[row], { col,value });
+		std::sort(columnValors_.begin() + rowIndex_[row], columnValors_.begin() + rowIndex_[row + 1],
+				  [](const colVal &a, const colVal &b) {return a.col < b.col; });
 
 	} else {
 		bool found = false;
@@ -127,6 +130,8 @@ void MatrixCSR::setValor(const int &row, const int &col, const float &value) {
 		}
 		if (!found) {
 			columnValors_.insert(columnValors_.begin() + rowIndex_[row], { col,value });
+			std::sort(columnValors_.begin() + rowIndex_[row], columnValors_.begin() + rowIndex_[row + 1],
+					  [](const colVal &a, const colVal &b) {return a.col < b.col; });
 			for (int i = row + 1; i < nRow_ + 1; i++)
 				rowIndex_[i]++;
 
