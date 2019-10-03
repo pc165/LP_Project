@@ -19,7 +19,7 @@ public:
 	MatrixCSR operator+(const MatrixCSR &e);
 	MatrixCSR operator-(const MatrixCSR &e);
 	MatrixCSR operator*(const MatrixCSR &e);
-	MatrixCSR operator*(const float &e);
+	std::vector<float> operator*(const std::vector<float> &e);
 	MatrixCSR operator/(const float &e);
 	MatrixCSR &operator=(const MatrixCSR &e);
 
@@ -34,7 +34,7 @@ private:
 
 private:
 	std::vector<int> rowIndex_;
-	std::vector<colVal> colVal_;
+	std::vector<colVal> columnValors_;
 	int nRow_, nCol_;
 
 };

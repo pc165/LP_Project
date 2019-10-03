@@ -24,7 +24,7 @@ void MatrixCSR::copy(const MatrixCSR &e) {
 	nRow_ = e.nRow_;
 	nCol_ = e.nCol_;
 	rowIndex_ = e.rowIndex_;
-	colVal_ = e.colVal_;
+	columnValors_ = e.columnValors_;
 }
 
 
@@ -34,8 +34,60 @@ void MatrixCSR::init(const int &row, const int &col) {
 	nRow_ = row;
 	nCol_ = col;
 	rowIndex_.resize(nRow_ + 1);
-	for (int i = 0; i < nRow_ + 1; i++)
-		rowIndex_[i] = 0;
+	//for (int i = 0; i < nRow_ + 1; i++)
+	//	rowIndex_[i] = 0;
+}
+
+MatrixCSR MatrixCSR::operator+(const MatrixCSR &e) {
+	return MatrixCSR();
+}
+
+MatrixCSR MatrixCSR::operator-(const MatrixCSR &e) {
+	return MatrixCSR();
+}
+
+MatrixCSR MatrixCSR::operator*(const MatrixCSR &e) {
+	if (this->nCol_ != e.nRow_) throw "Producte invalid, el numero de files no es igual al de columnes";
+	MatrixCSR res(this->nRow_, e.nCol_);
+	float sum = 0;
+
+	for (int z = 0; z < nRow_; z++) {
+		for (int k = 0; k < nCol_; k++) {
+			for (int i = 0; i < nRow_; i++) {
+				for (int j = rowIndex_[i]; j < rowIndex_[i + 1]; j++) {
+					sum += columnValors_[j].data * e.columnValors_[columnValors_[j].col].data;
+				}
+			}
+			res.setValor(z, k, sum);
+			sum = 0;
+		}
+	}
+
+	return res;
+}
+
+std::vector<float> MatrixCSR::operator*(const std::vector<float> &e) {
+	if (this->nCol_ != e.size()) throw "Producte invalid, el numero de files no es igual al de columnes";
+
+	std::vector<float> result(this->nCol_, 0);
+
+	for (int i = 0; i < nRow_; i++) {
+		for (int k = rowIndex_[i]; k < rowIndex_[i + 1]; k++) {
+			result[i] += columnValors_[k].data * e[columnValors_[k].col];
+		}
+	}
+	return result;
+}
+
+MatrixCSR MatrixCSR::operator/(const float &e) {
+	if (fabs(e) < FLT_EPSILON) throw "No es pot dividir per zero";
+
+	MatrixCSR temp(*this);
+	for (int i = 0; i < this->rowIndex_[this->nRow_]; i++)
+		this->columnValors_[i].data /= e;
+
+
+	return temp;
 }
 
 
@@ -45,30 +97,36 @@ void MatrixCSR::setValor(const int &row, const int &col, const float &value) {
 
 
 	if (!(row < nRow_ && col < nCol_)) {
-		rowIndex_.resize(row + 2);
-
-		if (row == rowIndex_.size() - 2) {
-			for (int i = nRow_ + 1; i < row + 2; i++)
-				rowIndex_[i] = rowIndex_[i - 1];
-			rowIndex_[row + 1]++;
+		int oldRow = nRow_;
+		nCol_ = col + 1;
+		if (!(row < nRow_)) {
+			nRow_ = row + 1;
+			rowIndex_.resize(row + 2);
 		}
 
-		colVal_.insert(colVal_.begin() + rowIndex_[row], { col,value });
+		if (row == rowIndex_.size() - 2) { // si es l'ultima fila
+			for (int i = oldRow + 1; i < row + 2; i++)
+				rowIndex_[i] = rowIndex_[i - 1];
+			rowIndex_[row + 1]++;
+		} else {
+			for (int i = row + 1; i < rowIndex_.size(); i++)
+				rowIndex_[i]++;
+		}
 
-		nRow_ = row + 1;
-		nCol_ = col + 1;
+		columnValors_.insert(columnValors_.begin() + rowIndex_[row], { col,value });
+
 	} else {
 		bool found = false;
 		int i = rowIndex_[row];
 		while (i < rowIndex_[row + 1] && !found) {
-			if (colVal_[i].col == col) {
-				colVal_[i].data = value;
+			if (columnValors_[i].col == col) {
+				columnValors_[i].data = value;
 				found = true;
 			}
 			i++;
 		}
 		if (!found) {
-			colVal_.insert(colVal_.begin() + rowIndex_[row], { col,value });
+			columnValors_.insert(columnValors_.begin() + rowIndex_[row], { col,value });
 			for (int i = row + 1; i < nRow_ + 1; i++)
 				rowIndex_[i]++;
 
@@ -86,6 +144,7 @@ std::ostream &operator<<(std::ostream &a, const MatrixCSR &e) {
 		}
 		a << "\n";
 	}
+	a << "Matrix " << e.getNFiles() << "x" << e.getNColumnes() << "\n";
 	return a;
 }
 
@@ -96,8 +155,8 @@ bool MatrixCSR::getValor(const int &row, const int &col, float &value) const {
 	value = 0.0f;
 	if (row < nRow_ && col < nCol_)
 		for (int i = rowIndex_[row]; i < rowIndex_[row + 1]; i++)
-			if (colVal_[i].col == col) {
-				value = colVal_[i].data;
+			if (columnValors_[i].col == col) {
+				value = columnValors_[i].data;
 				break;
 			}
 
