@@ -50,21 +50,7 @@ MatrixCSR MatrixCSR::operator-(const MatrixCSR &e) {
 MatrixCSR MatrixCSR::operator*(const MatrixCSR &e) {
 	 if (this->nCol_ != e.nRow_) throw "Producte invalid, el numero de files no es igual al de columnes";
 	 MatrixCSR res(this->nRow_, e.nCol_);
-	 float sum = 0;
 
-	 //for (int z = 0; z < nRow_; z++) {
-	 //	for (int k = 0; k < nCol_; k++) {
-	 //		for (int i = 0; i < nRow_; i++) {
-	 //			for (int j = rowIndex_[i]; j < rowIndex_[i + 1]; j++) {
-	 //				sum += columnValors_[j].data * e.columnValors_[columnValors_[j].col].data;
-	 //			}
-	 //		}
-	 //		res.setValor(z, k, sum);
-	 //		sum = 0;
-	 //	}
-	 //}
-
-	 return res;
 }
 
 std::vector<float> MatrixCSR::operator*(const std::vector<float> &e) {
@@ -74,8 +60,8 @@ std::vector<float> MatrixCSR::operator*(const std::vector<float> &e) {
 
 	 for (int i = 0; i < nRow_; i++) {
 		  for (int k = rowIndex_[i]; k < rowIndex_[i + 1]; k++) {
-				std::cout << columnValors_[k].data << " * " << e[columnValors_[k].col] << "\n";
-				result[i] += columnValors_[k].data * e[columnValors_[k].col];
+				std::cout << columnValors_[k].second << " * " << e[columnValors_[k].first] << "\n";
+				result[i] += columnValors_[k].second * e[columnValors_[k].first];
 		  }
 		  std::cout << "\n";
 	 }
@@ -87,8 +73,7 @@ MatrixCSR MatrixCSR::operator/(const float &e) {
 
 	 MatrixCSR temp(*this);
 	 for (int i = 0; i < this->rowIndex_[this->nRow_]; i++)
-		  this->columnValors_[i].data /= e;
-
+		  this->columnValors_[i].second /= e;
 
 	 return temp;
 }
@@ -98,72 +83,71 @@ void MatrixCSR::setValor(const int &row, const int &col, const float &value) {
 	 if (row < 0 || col < 0) throw "Error: Els indexs son negatius";
 	 if (fabs(value - 0.0f) < FLT_EPSILON) return;
 
-
-	 if (!(row < nRow_ && col < nCol_)) {
+	 if (row >= nRow_ || col >= nCol_) {
+		  if (col >= nCol_)
+				nCol_ = col + 1;
 		  int oldRow = nRow_;
-		  nCol_ = col + 1;
-		  if (!(row < nRow_)) {
+		  if (row >= nRow_) {
 				nRow_ = row + 1;
 				rowIndex_.resize(row + 2);
 		  }
 
-		  if (row == rowIndex_.size() - 2) { // si es l'ultima fila
+		  if (row == rowIndex_.size() - 2) {
 				for (int i = oldRow + 1; i < row + 2; i++)
 					 rowIndex_[i] = rowIndex_[i - 1];
 				rowIndex_[row + 1]++;
-		  } else {
+		  } else
 				for (int i = row + 1; i < rowIndex_.size(); i++)
 					 rowIndex_[i]++;
-		  }
-
-		  columnValors_.insert(columnValors_.begin() + rowIndex_[row], { col,value });
-		  std::sort(columnValors_.begin() + rowIndex_[row], columnValors_.begin() + rowIndex_[row + 1]);
+		  columnValors_.insert(columnValors_.begin() + rowIndex_[row], std::make_pair(col, value));
+		  auto it = columnValors_.begin();
+		  std::sort(it + rowIndex_[row], it + rowIndex_[row + 1],
+						[](const std::pair<int, float> &a, const std::pair<int, float> &b) { return a.first < b.first; });
 
 	 } else {
 		  bool found = false;
 		  int i = rowIndex_[row];
 		  while (i < rowIndex_[row + 1] && !found) {
-				if (columnValors_[i].col == col) {
-					 columnValors_[i].data = value;
+				if (columnValors_[i].first == col) {
+					 columnValors_[i].second = value;
 					 found = true;
-				}
-				i++;
+				} else
+					 i++;
 		  }
 		  if (!found) {
-				columnValors_.insert(columnValors_.begin() + rowIndex_[row], { col,value });
-				std::sort(columnValors_.begin() + rowIndex_[row], columnValors_.begin() + rowIndex_[row + 1]);
+				columnValors_.insert(columnValors_.begin() + rowIndex_[row], std::make_pair(col, value));
 				for (int i = row + 1; i < nRow_ + 1; i++)
 					 rowIndex_[i]++;
-
+				auto it = columnValors_.begin();
+				std::sort(it + rowIndex_[row], it + rowIndex_[row + 1],
+							 [](const std::pair<int, float> &a, const std::pair<int, float> &b) { return a.first < b.first; });
 		  }
 	 }
+	 std::cout << *this;
 }
-
 
 std::ostream &operator<<(std::ostream &a, const MatrixCSR &e) {
 	 float colVal = 0;
 	 for (int i = 0; i < e.nRow_; i++) {
 		  for (int j = 0; j < e.nCol_; j++) {
 				e.getValor(i, j, colVal);
-				if (colVal != 0)
-					 a << colVal;
-				else
-					 a << " ";
-				a << " ";
+				a << colVal << " ";
 		  }
 		  a << "\n";
 	 }
 
+	 a << "\n";
 	 a << "Matrix " << e.getNFiles() << "x" << e.getNColumnes() << "\n";
+	 a << "[Col, Val]: ";
 	 for (auto &i : e.columnValors_) {
-		  a << "[" << i.col << "," << i.data << "] ";
+		  a << "[" << i.first << "," << i.second << "] ";
 	 }
 	 a << "\n";
-
+	 a << "IndexPtr: ";
 	 for (auto &i : e.rowIndex_) {
 		  a << i << " ";
 	 }
-	 a << "\n";
+	 a << "\n\n";
 
 	 return a;
 }
@@ -175,8 +159,8 @@ bool MatrixCSR::getValor(const int &row, const int &col, float &value) const {
 	 value = 0.0f;
 	 if (row < nRow_ && col < nCol_)
 		  for (int i = rowIndex_[row]; i < rowIndex_[row + 1]; i++)
-				if (columnValors_[i].col == col) {
-					 value = columnValors_[i].data;
+				if (columnValors_[i].first == col) {
+					 value = columnValors_[i].second;
 					 break;
 				}
 
@@ -205,6 +189,4 @@ void MatrixCSR::setRowCol(const int &a, const int &e) {
 	 nRow_ = a;
 	 nCol_ = e;
 }
-bool operator<(const colVal &a, const colVal &b) {
-	 return a.col < b.col;
-}
+
