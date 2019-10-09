@@ -1,6 +1,7 @@
 #include "Matrix.h"
 #include <iostream>
 #include <algorithm>
+#include <math.h>
 
 
 
@@ -50,6 +51,30 @@ MatrixCSR MatrixCSR::operator-(const MatrixCSR &e) {
 MatrixCSR MatrixCSR::operator*(const MatrixCSR &e) {
 	 if (this->nCol_ != e.nRow_) throw "Producte invalid, el numero de files no es igual al de columnes";
 	 MatrixCSR res(this->nRow_, e.nCol_);
+		 /*
+	 n × m matrix A and an m × p matrix B, then C is an n × p matrix with entries
+	 Input: matrices A and B
+	 Let C be a new matrix of the appropriate size
+	 For i from 1 to A row:
+		  For j from 1 to B col:
+				Let sum = 0
+				For k from 1 to B row:
+					 Set sum ← sum + Aik × Bkj
+				Set Cij ← sum
+	 Return C
+	 */
+
+	 float sum = 0;
+	 for (int i = 0; i < nRow_; i++) {
+		  for (int j = rowIndex_[i]; j < rowIndex_[i + 1]; j++) {
+
+				//for (int z = 0; z < e.rowIndex_[e.nRow_]; z++) {
+				//	 if(e.columnValors_[z].col == columnValors_[j].col)
+				//}
+				std::cout << "col: " << columnValors_[j].first << " , " << columnValors_[j].second;
+		  }
+	 }
+	 return res;
 
 }
 
@@ -155,14 +180,22 @@ std::ostream &operator<<(std::ostream &a, const MatrixCSR &e) {
 
 bool MatrixCSR::getValor(const int &row, const int &col, float &value) const {
 	 if (row < 0 || col < 0) throw "Error: Els indexs son negatius";
-
 	 value = 0.0f;
-	 if (row < nRow_ && col < nCol_)
-		  for (int i = rowIndex_[row]; i < rowIndex_[row + 1]; i++)
-				if (columnValors_[i].first == col) {
+	 if (row < nRow_ && col < nCol_) {
+		  int L = rowIndex_[row], H = rowIndex_[row + 1]-1;
+		  int i = 0;
+		  while (L <= H) {
+				i = ceil((L + H) / 2);
+				if (columnValors_[i].first > col)
+					 H = i - 1;
+				else if (columnValors_[i].first < col)
+					 L = i + 1;
+				else {
 					 value = columnValors_[i].second;
 					 break;
 				}
+		  }
+	 }
 
 	 return  (row < nRow_ && col < nCol_);
 }
