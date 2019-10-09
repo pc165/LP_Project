@@ -124,10 +124,9 @@ void MatrixCSR::setValor(const int &row, const int &col, const float &value) {
 		  } else
 				for (int i = row + 1; i < rowIndex_.size(); i++)
 					 rowIndex_[i]++;
-		  columnValors_.insert(columnValors_.begin() + rowIndex_[row], std::make_pair(col, value));
-		  auto it = columnValors_.begin();
-		  std::sort(it + rowIndex_[row], it + rowIndex_[row + 1],
-						[](const std::pair<int, float> &a, const std::pair<int, float> &b) { return a.first < b.first; });
+		  auto it = std::upper_bound(columnValors_.begin() + rowIndex_[row], columnValors_.begin() + (rowIndex_[row + 1] - 1), col,
+											  [](const int &a, const std::pair<int, float> &b) { return a < b.first; });
+		  columnValors_.insert(it, std::make_pair(col, value));
 
 	 } else {
 		  bool found = false;
@@ -140,15 +139,14 @@ void MatrixCSR::setValor(const int &row, const int &col, const float &value) {
 					 i++;
 		  }
 		  if (!found) {
-				columnValors_.insert(columnValors_.begin() + rowIndex_[row], std::make_pair(col, value));
 				for (int i = row + 1; i < nRow_ + 1; i++)
 					 rowIndex_[i]++;
-				auto it = columnValors_.begin();
-				std::sort(it + rowIndex_[row], it + rowIndex_[row + 1],
-							 [](const std::pair<int, float> &a, const std::pair<int, float> &b) { return a.first < b.first; });
+				auto it = std::upper_bound(columnValors_.begin() + rowIndex_[row], columnValors_.begin() + (rowIndex_[row + 1] - 1), col,
+													[](const int &a, const std::pair<int, float> &b) { return a < b.first; });
+				columnValors_.insert(it, std::make_pair(col, value));
 		  }
 	 }
-	 std::cout << *this;
+	 //std::cout << *this;
 }
 
 std::ostream &operator<<(std::ostream &a, const MatrixCSR &e) {
@@ -182,7 +180,7 @@ bool MatrixCSR::getValor(const int &row, const int &col, float &value) const {
 	 if (row < 0 || col < 0) throw "Error: Els indexs son negatius";
 	 value = 0.0f;
 	 if (row < nRow_ && col < nCol_) {
-		  int L = rowIndex_[row], H = rowIndex_[row + 1]-1;
+		  int L = rowIndex_[row], H = rowIndex_[row + 1] - 1;
 		  int i = 0;
 		  while (L <= H) {
 				i = ceil((L + H) / 2);
