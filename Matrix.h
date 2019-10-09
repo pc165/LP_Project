@@ -26,7 +26,7 @@ public:
 	 inline int getNColumnes()const { return nCol_; }
 private:
 	 void copy(const MatrixCSR &e);
-
+	 int binarySearch(const int &row, const int &col) const;
 
 private:
 	 std::vector<int> rowIndex_;

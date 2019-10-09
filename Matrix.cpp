@@ -100,24 +100,24 @@ void MatrixCSR::setValor(const int &row, const int &col, const float &value) {
 				for (int i = oldRow + 1; i < row + 2; i++)
 					 rowIndex_[i] = rowIndex_[i - 1];
 				rowIndex_[row + 1]++;
-		  } else
+		  } else {
 				for (int i = row + 1; i < rowIndex_.size(); i++)
 					 rowIndex_[i]++;
-		  auto it = std::upper_bound(columnValors_.begin() + rowIndex_[row], columnValors_.begin() + (rowIndex_[row + 1] - 1), col,
-											  [](const int &a, const std::pair<int, float> &b) { return a < b.first; });
-		  columnValors_.insert(it, std::make_pair(col, value));
-
+		  }
 	 } else {
-		  float val = 0.0f;
-		  getValor(row, col, val);
-		  if (cmpFloat(val, 0.0f)) {
+		  int z = binarySearch(row, col);
+		  if (z == -1) {
 				for (int i = row + 1; i < nRow_ + 1; i++)
 					 rowIndex_[i]++;
-				auto it = std::upper_bound(columnValors_.begin() + rowIndex_[row], columnValors_.begin() + (rowIndex_[row + 1] - 1), col,
-													[](const int &a, const std::pair<int, float> &b) { return a < b.first; });
-				columnValors_.insert(it, std::make_pair(col, value));
+		  } else if (z >= 0) {
+				columnValors_[z].second = value;
+				return;
 		  }
 	 }
+	 auto it = columnValors_.begin();
+	 it = std::upper_bound(it + rowIndex_[row], it + (rowIndex_[row + 1] - 1), col,
+								  [](const int &a, const std::pair<int, float> &b) { return a < b.first; });
+	 columnValors_.insert(it, std::make_pair(col, value));
 }
 
 std::ostream &operator<<(std::ostream &a, const MatrixCSR &e) {
@@ -150,21 +150,9 @@ std::ostream &operator<<(std::ostream &a, const MatrixCSR &e) {
 bool MatrixCSR::getValor(const int &row, const int &col, float &value) const {
 	 if (row < 0 || col < 0) throw "Error: Els indexs son negatius";
 	 value = 0.0f;
-	 if (row < nRow_ && col < nCol_) {
-		  int L = rowIndex_[row], H = rowIndex_[row + 1] - 1;
-		  int i = 0;
-		  while (L <= H) {
-				i = ceil((L + H) / 2);
-				if (columnValors_[i].first > col)
-					 H = i - 1;
-				else if (columnValors_[i].first < col)
-					 L = i + 1;
-				else {
-					 value = columnValors_[i].second;
-					 break;
-				}
-		  }
-	 }
+	 int i = binarySearch(row, col);
+	 if (i != -1)
+		  value = columnValors_[i].second;
 	 return  (row < nRow_ && col < nCol_);
 }
 
@@ -189,4 +177,21 @@ void MatrixCSR::setRowCol(const int &a, const int &e) {
 	 if (e > nCol_ || e < 0 || a>nRow_ || a < 0) throw "Accio no permesa, utilitzi init per agrandar la matriu";
 	 nRow_ = a;
 	 nCol_ = e;
+}
+
+int MatrixCSR::binarySearch(const int &row, const int &col) const {
+	 if (row < nRow_ && col < nCol_) {
+		  int L = rowIndex_[row], H = rowIndex_[row + 1] - 1;
+		  int i = 0;
+		  while (L <= H) {
+				i = ceil((L + H) / 2);
+				if (columnValors_[i].first > col)
+					 H = i - 1;
+				else if (columnValors_[i].first < col)
+					 L = i + 1;
+				else
+					 return i;
+		  }
+	 }
+	 return -1;
 }
