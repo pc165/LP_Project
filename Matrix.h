@@ -1,12 +1,14 @@
 #pragma once
 #include <vector>
 #include <iostream>
+#include <string>
 
 class MatrixCSR {
 public:
     MatrixCSR();
     MatrixCSR(const int &row, const int &col);
     MatrixCSR(const MatrixCSR &e);
+    MatrixCSR(const std::string & e, const int & row, const int & col);
     ~MatrixCSR();
     void setValor(const int &row, const int &col, const float &value);
     bool getValor(const int &row, const int &col, float &value) const;

@@ -2,6 +2,20 @@
 #include <iostream>
 #include <algorithm>
 #include <math.h>
+#include <fstream>
+
+MatrixCSR::MatrixCSR(const std::string &e, const int &row, const int &col) {
+    std::fstream f(e);
+    if (f.is_open()) {
+        init(row, col);
+        int x = 0, y = 0;
+        while (!f.eof()) {
+            f >> x >> y;
+            setValor(x, y, 1);
+        }
+        f.close();
+    }
+}
 
 inline bool cmpFloat(const float &e, const float &a) {
     return(fabs(e - a) < FLT_EPSILON);
@@ -34,7 +48,6 @@ void MatrixCSR::copy(const MatrixCSR &e) {
 
 void MatrixCSR::init(const int &row, const int &col) {
     if (row < 0 || col < 0) throw "Error: Les columnes i files han de ser positius\n";
-
     nRow_ = row;
     nCol_ = col;
     rowIndex_.resize(nRow_ + 1);
@@ -64,7 +77,7 @@ std::vector<float> MatrixCSR::operator*(const std::vector<float> &e) {
 
     for (int i = 0; i < nRow_; i++) {
         for (int k = rowIndex_[i]; k < rowIndex_[i + 1]; k++) {
-            std::cout << columnValors_[k].second << " * " << e[columnValors_[k].first] << "\n";
+            //std::cout << columnValors_[k].second << " * " << e[columnValors_[k].first] << "\n";
             result[i] += columnValors_[k].second * e[columnValors_[k].first];
         }
         std::cout << "\n";
@@ -121,6 +134,27 @@ void MatrixCSR::setValor(const int &row, const int &col, const float &value) {
 }
 
 std::ostream &operator<<(std::ostream &a, const MatrixCSR &e) {
+    a << "MATRIU DE FILES: " << e.nRow_ << " : COLUMNES: " << e.nCol_ << "\n";
+    for (int i = 0; i < e.nRow_; i++) {
+        a << "VALORS FILA: " << i << "<< (COL:VALOR)\n";
+        for (int j = e.rowIndex_[i]; j < e.rowIndex_[i + 1]; j++) {
+            a << "(" << e.columnValors_[j].first << " : " << e.columnValors_[j].second << ")";
+        }
+        a << "\n";
+    }
+    a << "MATRIUS\nVALORS\n( ";
+    for (auto &i : e.columnValors_)
+        a << i.second << " ";
+    a << ")\n COLS\n( ";
+    for (auto &i : e.columnValors_)
+        a << i.first << " ";
+    a << ")\n INIFINA\n( ";
+    for (int i = 0; i < e.nRow_; i++) {
+        a << "[" << e.rowIndex_[i] << " : " << e.rowIndex_[i + 1] << "] ";
+    }
+    a << ")\n[Num Elems:" << e.rowIndex_[e.nRow_] << "]\n\n";
+
+    ///*
     float colVal = 0;
     for (int i = 0; i < e.nRow_; i++) {
         for (int j = 0; j < e.nCol_; j++) {
@@ -130,6 +164,7 @@ std::ostream &operator<<(std::ostream &a, const MatrixCSR &e) {
         a << "\n";
     }
 
+    /*
     a << "\n";
     a << "Matrix " << e.getNFiles() << "x" << e.getNColumnes() << "\n";
     a << "[Col, Val]: ";
@@ -142,7 +177,7 @@ std::ostream &operator<<(std::ostream &a, const MatrixCSR &e) {
         a << i << " ";
     }
     a << "\n\n";
-
+    //*/
     return a;
 }
 
