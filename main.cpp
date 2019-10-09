@@ -1,7 +1,6 @@
 #include <iostream>
 #include "Matrix.h"
 using std::cout;
-///*
 
 inline int randMinMax(const int &min, const int &max) {
 	 return (min + rand() % (min - max + 1));
@@ -74,6 +73,7 @@ void setValor() {
 					 a.setValor(i, j, i + 1);
 				}
 		  }
+		  cout << a;
 		  cout << "\n";
 	 } catch (const char *c) {
 		  cout << c;

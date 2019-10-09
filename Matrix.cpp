@@ -3,7 +3,9 @@
 #include <algorithm>
 #include <math.h>
 
-
+inline bool cmpFloat(const float &e, const float &a) {
+	 return(fabs(e - a) < FLT_EPSILON);
+}
 
 MatrixCSR::MatrixCSR() {
 	 this->init(0, 0);
@@ -36,8 +38,6 @@ void MatrixCSR::init(const int &row, const int &col) {
 	 nRow_ = row;
 	 nCol_ = col;
 	 rowIndex_.resize(nRow_ + 1);
-	 //for (int i = 0; i < nRow_ + 1; i++)
-	 //	rowIndex_[i] = 0;
 }
 
 MatrixCSR MatrixCSR::operator+(const MatrixCSR &e) {
@@ -51,29 +51,8 @@ MatrixCSR MatrixCSR::operator-(const MatrixCSR &e) {
 MatrixCSR MatrixCSR::operator*(const MatrixCSR &e) {
 	 if (this->nCol_ != e.nRow_) throw "Producte invalid, el numero de files no es igual al de columnes";
 	 MatrixCSR res(this->nRow_, e.nCol_);
-		 /*
-	 n × m matrix A and an m × p matrix B, then C is an n × p matrix with entries
-	 Input: matrices A and B
-	 Let C be a new matrix of the appropriate size
-	 For i from 1 to A row:
-		  For j from 1 to B col:
-				Let sum = 0
-				For k from 1 to B row:
-					 Set sum ← sum + Aik × Bkj
-				Set Cij ← sum
-	 Return C
-	 */
 
-	 float sum = 0;
-	 for (int i = 0; i < nRow_; i++) {
-		  for (int j = rowIndex_[i]; j < rowIndex_[i + 1]; j++) {
 
-				//for (int z = 0; z < e.rowIndex_[e.nRow_]; z++) {
-				//	 if(e.columnValors_[z].col == columnValors_[j].col)
-				//}
-				std::cout << "col: " << columnValors_[j].first << " , " << columnValors_[j].second;
-		  }
-	 }
 	 return res;
 
 }
@@ -94,7 +73,7 @@ std::vector<float> MatrixCSR::operator*(const std::vector<float> &e) {
 }
 
 MatrixCSR MatrixCSR::operator/(const float &e) {
-	 if (fabs(e) < FLT_EPSILON) throw "No es pot dividir per zero";
+	 if (cmpFloat(e, 0.0f)) throw "No es pot dividir per zero";
 
 	 MatrixCSR temp(*this);
 	 for (int i = 0; i < this->rowIndex_[this->nRow_]; i++)
@@ -106,7 +85,7 @@ MatrixCSR MatrixCSR::operator/(const float &e) {
 
 void MatrixCSR::setValor(const int &row, const int &col, const float &value) {
 	 if (row < 0 || col < 0) throw "Error: Els indexs son negatius";
-	 if (fabs(value - 0.0f) < FLT_EPSILON) return;
+	 if (cmpFloat(value, 0.0f)) return;
 
 	 if (row >= nRow_ || col >= nCol_) {
 		  if (col >= nCol_)
@@ -129,16 +108,9 @@ void MatrixCSR::setValor(const int &row, const int &col, const float &value) {
 		  columnValors_.insert(it, std::make_pair(col, value));
 
 	 } else {
-		  bool found = false;
-		  int i = rowIndex_[row];
-		  while (i < rowIndex_[row + 1] && !found) {
-				if (columnValors_[i].first == col) {
-					 columnValors_[i].second = value;
-					 found = true;
-				} else
-					 i++;
-		  }
-		  if (!found) {
+		  float val = 0.0f;
+		  getValor(row, col, val);
+		  if (cmpFloat(val, 0.0f)) {
 				for (int i = row + 1; i < nRow_ + 1; i++)
 					 rowIndex_[i]++;
 				auto it = std::upper_bound(columnValors_.begin() + rowIndex_[row], columnValors_.begin() + (rowIndex_[row + 1] - 1), col,
@@ -146,7 +118,6 @@ void MatrixCSR::setValor(const int &row, const int &col, const float &value) {
 				columnValors_.insert(it, std::make_pair(col, value));
 		  }
 	 }
-	 //std::cout << *this;
 }
 
 std::ostream &operator<<(std::ostream &a, const MatrixCSR &e) {
@@ -194,7 +165,6 @@ bool MatrixCSR::getValor(const int &row, const int &col, float &value) const {
 				}
 		  }
 	 }
-
 	 return  (row < nRow_ && col < nCol_);
 }
 
@@ -220,4 +190,3 @@ void MatrixCSR::setRowCol(const int &a, const int &e) {
 	 nRow_ = a;
 	 nCol_ = e;
 }
-
