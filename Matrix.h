@@ -12,6 +12,7 @@ public:
     ~MatrixCSR();
     void setValor(const int &row, const int &col, const float &value);
     bool getValor(const int &row, const int &col, float &value) const;
+    float getValor(const int &row, const int &col) const;
     void init(const int &row, const int &col);
     friend std::ostream &operator<<(std::ostream &a, const MatrixCSR &e);
     MatrixCSR operator+(const MatrixCSR &e);

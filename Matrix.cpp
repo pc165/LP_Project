@@ -63,8 +63,17 @@ MatrixCSR MatrixCSR::operator-(const MatrixCSR &e) {
 MatrixCSR MatrixCSR::operator*(const MatrixCSR &e) {
 	if (this->nCol_ != e.nRow_) throw "Producte invalid, el numero de files no es igual al de columnes";
 	MatrixCSR res(this->nRow_, e.nCol_);
-
-
+	float suma = 0;
+	int index = -1;
+	for (int i = 0; i < this->nRow_; i++) {
+		for (int j = 0; j < e.nCol_; j++) {
+			for (int z = 0; z < nCol_; z++) {
+				suma += getValor(i, z) * e.getValor(z, j);
+			}
+			res.setValor(i, j, suma);
+			suma = 0;
+		}
+	}
 	return res;
 
 }
@@ -193,6 +202,15 @@ bool MatrixCSR::getValor(const int &row, const int &col, float &value) const {
 	if (i != -1)
 		value = columnValors_[i].second;
 	return  (row < nRow_ && col < nCol_);
+}
+
+float MatrixCSR::getValor(const int &row, const int &col) const {
+	if (row < 0 || col < 0 || !((row < nRow_ && col < nCol_))) throw "Error: Seleccio invalida";
+	int i = binarySearch(row, col);
+	if (i != -1)
+		return columnValors_[i].second;
+	else
+		return 0;
 }
 
 
