@@ -3,7 +3,7 @@
 #include <math.h>
 #include <fstream>
 
-MatrixCSR::MatrixCSR(const std::string &e, const int &row, const int &col) {
+MatriuSparse::MatriuSparse(const std::string &e, const int &row, const int &col) {
 	std::fstream f(e);
 	if (f.is_open()) {
 		init(row, col);
@@ -20,24 +20,24 @@ inline bool cmpFloat(const float &e, const float &a) {
 	return(fabs(e - a) < FLT_EPSILON);
 }
 
-MatrixCSR::MatrixCSR() {
+MatriuSparse::MatriuSparse() {
 	this->init(0, 0);
 }
 
 
-MatrixCSR::MatrixCSR(const int &row, const int &col) {
+MatriuSparse::MatriuSparse(const int &row, const int &col) {
 	this->init(row, col);
 }
 
-MatrixCSR::MatrixCSR(const MatrixCSR &e) {
+MatriuSparse::MatriuSparse(const MatriuSparse &e) {
 	this->copy(e);
 }
 
-MatrixCSR::~MatrixCSR() {
+MatriuSparse::~MatriuSparse() {
 
 }
 
-void MatrixCSR::copy(const MatrixCSR &e) {
+void MatriuSparse::copy(const MatriuSparse &e) {
 	nRow_ = e.nRow_;
 	nCol_ = e.nCol_;
 	rowIndex_ = e.rowIndex_;
@@ -45,24 +45,24 @@ void MatrixCSR::copy(const MatrixCSR &e) {
 }
 
 
-void MatrixCSR::init(const int &row, const int &col) {
+void MatriuSparse::init(const int &row, const int &col) {
 	if (row < 0 || col < 0) throw "Error: Les columnes i files han de ser positius\n";
 	nRow_ = row;
 	nCol_ = col;
 	rowIndex_.resize(nRow_ + 1);
 }
 
-MatrixCSR MatrixCSR::operator+(const MatrixCSR &e) {
-	return MatrixCSR();
+MatriuSparse MatriuSparse::operator+(const MatriuSparse &e) {
+	return MatriuSparse();
 }
 
-MatrixCSR MatrixCSR::operator-(const MatrixCSR &e) {
-	return MatrixCSR();
+MatriuSparse MatriuSparse::operator-(const MatriuSparse &e) {
+	return MatriuSparse();
 }
 
-MatrixCSR MatrixCSR::operator*(const MatrixCSR &e) {
+MatriuSparse MatriuSparse::operator*(const MatriuSparse &e) {
 	if (this->nCol_ != e.nRow_) throw "Producte invalid, el numero de files no es igual al de columnes";
-	MatrixCSR res(this->nRow_, e.nCol_);
+	MatriuSparse res(this->nRow_, e.nCol_);
 	float suma = 0;
 	int index = -1;
 	for (int i = 0; i < this->nRow_; i++) {
@@ -78,7 +78,7 @@ MatrixCSR MatrixCSR::operator*(const MatrixCSR &e) {
 
 }
 
-std::vector<float> MatrixCSR::operator*(const std::vector<float> &e) {
+std::vector<float> MatriuSparse::operator*(const std::vector<float> &e) {
 	if (this->nCol_ != e.size()) throw "Producte invalid, el numero de files no es igual al de columnes";
 
 	std::vector<float> result(this->nRow_, 0);
@@ -93,10 +93,10 @@ std::vector<float> MatrixCSR::operator*(const std::vector<float> &e) {
 	return result;
 }
 
-MatrixCSR MatrixCSR::operator/(const float &e) {
+MatriuSparse MatriuSparse::operator/(const float &e) {
 	if (cmpFloat(e, 0.0f)) throw "No es pot dividir per zero";
 
-	MatrixCSR temp(*this);
+	MatriuSparse temp(*this);
 	for (int i = 0; i < this->rowIndex_[this->nRow_]; i++)
 		this->columnValors_[i].second /= e;
 
@@ -104,7 +104,7 @@ MatrixCSR MatrixCSR::operator/(const float &e) {
 }
 
 
-void MatrixCSR::setValor(const int &row, const int &col, const float &value) {
+void MatriuSparse::setValor(const int &row, const int &col, const float &value) {
 	if (row < 0 || col < 0) throw "Error: Els indexs son negatius";
 	if (cmpFloat(value, 0.0f)) return;
 
@@ -145,7 +145,7 @@ void MatrixCSR::setValor(const int &row, const int &col, const float &value) {
 	columnValors_.insert(columnValors_.begin() + low, std::make_pair(col, value));
 }
 
-std::ostream &operator<<(std::ostream &a, const MatrixCSR &e) {
+std::ostream &operator<<(std::ostream &a, const MatriuSparse &e) {
 	/*
 	a << "MATRIU DE FILES: " << e.nRow_ << " : COLUMNES: " << e.nCol_ << "\n";
 	for (int i = 0; i < e.nRow_; i++) {
@@ -195,7 +195,7 @@ std::ostream &operator<<(std::ostream &a, const MatrixCSR &e) {
 }
 
 
-bool MatrixCSR::getValor(const int &row, const int &col, float &value) const {
+bool MatriuSparse::getValor(const int &row, const int &col, float &value) const {
 	if (row < 0 || col < 0) throw "Error: Els indexs son negatius";
 	value = 0.0f;
 	int i = binarySearch(row, col);
@@ -204,7 +204,7 @@ bool MatrixCSR::getValor(const int &row, const int &col, float &value) const {
 	return  (row < nRow_ && col < nCol_);
 }
 
-float MatrixCSR::getValor(const int &row, const int &col) const {
+float MatriuSparse::getValor(const int &row, const int &col) const {
 	if (row < 0 || col < 0 || !((row < nRow_ && col < nCol_))) throw "Error: Seleccio invalida";
 	int i = binarySearch(row, col);
 	if (i != -1)
@@ -214,29 +214,29 @@ float MatrixCSR::getValor(const int &row, const int &col) const {
 }
 
 
-MatrixCSR &MatrixCSR::operator=(const MatrixCSR &e) {
+MatriuSparse &MatriuSparse::operator=(const MatriuSparse &e) {
 	this->copy(e);
 	return *this;
 }
 
 
-void MatrixCSR::setRow(const int &e) {
+void MatriuSparse::setRow(const int &e) {
 	if (e > nRow_ || e < 0) throw "Accio no permesa, utilitzi init per agrandar la matriu";
 	nRow_ = e;
 }
 
-void MatrixCSR::setCol(const int &e) {
+void MatriuSparse::setCol(const int &e) {
 	if (e > nCol_ || e < 0) throw "Accio no permesa, utilitzi init per agrandar la matriu";
 	nCol_ = e;
 }
 
-void MatrixCSR::setRowCol(const int &a, const int &e) {
+void MatriuSparse::setRowCol(const int &a, const int &e) {
 	if (e > nCol_ || e < 0 || a>nRow_ || a < 0) throw "Accio no permesa, utilitzi init per agrandar la matriu";
 	nRow_ = a;
 	nCol_ = e;
 }
 
-int MatrixCSR::binarySearch(const int &row, const int &col) const {
+int MatriuSparse::binarySearch(const int &row, const int &col) const {
 	if (row < nRow_ && col < nCol_) {
 		int L = rowIndex_[row], H = rowIndex_[row + 1] - 1;
 		int i = 0;
