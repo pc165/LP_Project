@@ -51,7 +51,7 @@ void MatriuSparse::init(const int &row, const int &col) {
 	if (row < 0 || col < 0) throw "Error: Les columnes i files han de ser positius\n";
 	nRow_ = row;
 	nCol_ = col;
-	rowIndex_.resize(nRow_ + 1);
+	rowIndex_.resize(rowIndex_.size());
 }
 
 MatriuSparse MatriuSparse::operator+(const MatriuSparse &e) {
@@ -126,7 +126,7 @@ void MatriuSparse::setVal(const int &row, const int &col, const float &value) {
 		if (i >= 0)
 			columnValors_.erase(columnValors_.begin() + i);
 		if (row + 2 != nRow_) {
-			for (int i = row + 1; i < nRow_; i++)
+			for (int i = row + 1; i < rowIndex_.size(); i++)
 				rowIndex_[i]--;
 		} else {
 			rowIndex_[row]--;
@@ -159,7 +159,7 @@ void MatriuSparse::setVal(const int &row, const int &col, const float &value) {
 			return;
 		}
 
-		for (int i = row + 1; i < nRow_ + 1; i++)
+		for (int i = row + 1; i < rowIndex_.size(); i++)
 			rowIndex_[i]++;
 	}
 
@@ -173,24 +173,16 @@ void MatriuSparse::setVal(const int &row, const int &col, const float &value) {
 	}
 	columnValors_.insert(columnValors_.begin() + low, std::make_pair(col, value));
 }
-
-std::ostream &operator<<(std::ostream &a, const MatriuSparse &e) {
+template<typename T>
+T &format(T &a, const MatriuSparse &e) {
+	a << "MATRIU DE FILES: " << e.getNFiles() << " : COLUMNES: " << e.getNColumnes() << "\n";
 	for (int i = 0; i < e.nRow_; i++) {
-		for (int j = 0; j < e.nCol_; j++) {
-			a << e.getVal(i, j) << " ";
+		if (e.rowIndex_[i] != e.rowIndex_[i + 1]) {
+			a << "VALORS FILA:" << i << "(COL:VALOR)\n";
+			for (int j = e.rowIndex_[i]; j < e.rowIndex_[i + 1]; j++)
+				a << "(" << e.columnValors_[j].first << " : " << e.columnValors_[j].second << ") ";
+			a << "\n";
 		}
-		a << "\n";
-	}
-	a << "\n";
-
-
-	a << "MATRIU DE FILES: " << e.nRow_ << " : COLUMNES: " << e.nCol_ << "\n";
-	for (int i = 0; i < e.nRow_; i++) {
-		a << "VALORS FILA:" << i << "(COL:VALOR)\n";
-		for (int j = e.rowIndex_[i]; j < e.rowIndex_[i + 1]; j++)
-			a << "(" << e.columnValors_[j].first << " : " << e.columnValors_[j].second << ") ";
-
-		a << "\n";
 	}
 	a << "MATRIUS\nVALORS\n(";
 	for (auto &i : e.columnValors_)
@@ -200,35 +192,20 @@ std::ostream &operator<<(std::ostream &a, const MatriuSparse &e) {
 		a << i.first << "  ";
 	a << ")\nINIFILA\n(";
 	for (int i = 0; i < e.nRow_; i++) {
-		a << "[ " << i << " : " << e.rowIndex_[i] << " ] ";
+		if (e.rowIndex_[i] != e.rowIndex_[i + 1])
+			a << "[ " << i << " : " << e.rowIndex_[i] << " ] ";
 	}
 	a << " [Num Elems:" << e.rowIndex_[e.nRow_] << "] )\n";
 	return a;
+}
+
+std::ostream &operator<<(std::ostream &a, const MatriuSparse &e) {
+	return format<std::ostream>(a, e);
 }
 
 std::ofstream &operator<<(std::ofstream &a, const MatriuSparse &e) {
-	a << "MATRIU DE FILES: " << e.nRow_ << " : COLUMNES: " << e.nCol_ << "\n";
-	for (int i = 0; i < e.nRow_; i++) {
-		a << "VALORS FILA:" << i << "(COL:VALOR)\n";
-		for (int j = e.rowIndex_[i]; j < e.rowIndex_[i + 1]; j++)
-			a << "(" << e.columnValors_[j].first << " : " << e.columnValors_[j].second << ") ";
-
-		a << "\n";
-	}
-	a << "MATRIUS\nVALORS\n(";
-	for (auto &i : e.columnValors_)
-		a << i.second << "  ";
-	a << ")\nCOLS\n(";
-	for (auto &i : e.columnValors_)
-		a << i.first << "  ";
-	a << ")\nINIFILA\n(";
-	for (int i = 0; i < e.nRow_; i++) {
-		a << "[ " << i << " : " << e.rowIndex_[i] << " ] ";
-	}
-	a << " [Num Elems:" << e.rowIndex_[e.nRow_] << "] )\n";
-	return a;
+	return format<std::ofstream>(a, e);
 }
-
 bool MatriuSparse::getVal(const int &row, const int &col, float &value) const {
 	if (row < 0 || col < 0) throw "Error: Els indexs son negatius";
 	value = 0.0f;
