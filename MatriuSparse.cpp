@@ -51,7 +51,7 @@ void MatriuSparse::init(const int &row, const int &col) {
 	if (row < 0 || col < 0) throw "Error: Les columnes i files han de ser positius\n";
 	nRow_ = row;
 	nCol_ = col;
-	rowIndex_.resize(rowIndex_.size());
+	rowIndex_.resize(nRow_ + 1);
 }
 
 MatriuSparse MatriuSparse::operator+(const MatriuSparse &e) {
