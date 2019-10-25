@@ -75,7 +75,7 @@ void List<T>::unique() {
 
     Node<T> *temp = m_llista;
     while (temp->getNext() != nullptr) {
-        if (temp->getNext()->getValor() == temp->getValor()) {
+        if (temp->getNext()->getVal() == temp->getVal()) {
             erase(temp->getNext());
         } else {
             temp = temp->getNext();
@@ -98,12 +98,12 @@ void List<T>::merge(List<T> &llista) {
         Node<T> *it = m_llista, *aux = m_llista, *max = m_llista;
         while (it != nullptr) {
             aux = it;
-            if (aux->getValor() > max->getValor())
+            if (aux->getVal() > max->getVal())
                 max = aux;
             it = it->getNext();
         }
         if (max != nullptr)
-            tempLlista.insert(max->getValor(), tempLlista.m_llista);
+            tempLlista.insert(max->getVal(), tempLlista.m_llista);
         this->erase(max);
     } while (!this->empty());
     this->m_llista = tempLlista.m_llista;
@@ -115,7 +115,7 @@ template<class T>
 List<T> &List<T>::operator=(const List<T> &llista) {
     Node<T> *it = llista.rbegin();
     while (it != nullptr) {
-        this->insert(it->getValor(), m_llista);
+        this->insert(it->getVal(), m_llista);
         it = it->getPrev();
     }
     return *this;

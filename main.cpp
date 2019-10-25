@@ -1,7 +1,10 @@
 #include <iostream>
-#include "Matrix.h"
-using std::cout;
+#include <string>
+#include <fstream>
 
+#include "Matrix.h"
+using namespace std;
+/*
 inline int randMinMax(const int &min, const int &max) {
 	return (min + rand() % (min - max + 1));
 }
@@ -80,15 +83,15 @@ void setValor() {
 		cout << c;
 	}
 }
-//*/
 int main() {
 	multiplyMatrixVector();
 	multiplyMatrixMatrix();
 	setValor();
 	return 0;
 }
+//*/
 
-/*
+///*
 
 
 bool IgualFitxers(string nomF1, string nomF2, string nomFRes)

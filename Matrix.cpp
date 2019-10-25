@@ -3,14 +3,16 @@
 #include <math.h>
 #include <fstream>
 
-MatriuSparse::MatriuSparse(const std::string &e, const int &row, const int &col) {
+MatriuSparse::MatriuSparse(const std::string &e) {
 	std::fstream f(e);
 	if (f.is_open()) {
+		int row, col;
+		f >> row >> col;
 		init(row, col);
 		int x = 0, y = 0;
 		while (!f.eof()) {
 			f >> x >> y;
-			setValor(x, y, 1);
+			setVal(x, y, 1);
 		}
 		f.close();
 	}
@@ -68,14 +70,27 @@ MatriuSparse MatriuSparse::operator*(const MatriuSparse &e) {
 	for (int i = 0; i < this->nRow_; i++) {
 		for (int j = 0; j < e.nCol_; j++) {
 			for (int z = 0; z < nCol_; z++) {
-				suma += getValor(i, z) * e.getValor(z, j);
+				suma += getVal(i, z) * e.getVal(z, j);
 			}
-			res.setValor(i, j, suma);
+			res.setVal(i, j, suma);
 			suma = 0;
 		}
 	}
 	return res;
 
+}
+
+MatriuSparse MatriuSparse::operator*(const float &e) {
+	MatriuSparse res(*this);
+	if (cmpFloat(e, 0)) {
+		res.columnValors_.resize(0);
+		for (auto &i : res.rowIndex_)
+			i = 0;
+	} else {
+		for (auto &i : res.columnValors_)
+			i.second *= e;
+	}
+	return res;
 }
 
 std::vector<float> MatriuSparse::operator*(const std::vector<float> &e) {
@@ -104,7 +119,7 @@ MatriuSparse MatriuSparse::operator/(const float &e) {
 }
 
 
-void MatriuSparse::setValor(const int &row, const int &col, const float &value) {
+void MatriuSparse::setVal(const int &row, const int &col, const float &value) {
 	if (row < 0 || col < 0) throw "Error: Els indexs son negatius";
 	if (cmpFloat(value, 0.0f)) return;
 
@@ -171,7 +186,7 @@ std::ostream &operator<<(std::ostream &a, const MatriuSparse &e) {
 	float colVal = 0;
 	for (int i = 0; i < e.nRow_; i++) {
 		for (int j = 0; j < e.nCol_; j++) {
-			e.getValor(i, j, colVal);
+			e.getVal(i, j, colVal);
 			a << colVal << " ";
 		}
 		a << "\n";
@@ -195,7 +210,7 @@ std::ostream &operator<<(std::ostream &a, const MatriuSparse &e) {
 }
 
 
-bool MatriuSparse::getValor(const int &row, const int &col, float &value) const {
+bool MatriuSparse::getVal(const int &row, const int &col, float &value) const {
 	if (row < 0 || col < 0) throw "Error: Els indexs son negatius";
 	value = 0.0f;
 	int i = binarySearch(row, col);
@@ -204,7 +219,7 @@ bool MatriuSparse::getValor(const int &row, const int &col, float &value) const 
 	return  (row < nRow_ && col < nCol_);
 }
 
-float MatriuSparse::getValor(const int &row, const int &col) const {
+float MatriuSparse::getVal(const int &row, const int &col) const {
 	if (row < 0 || col < 0 || !((row < nRow_ && col < nCol_))) throw "Error: Seleccio invalida";
 	int i = binarySearch(row, col);
 	if (i != -1)

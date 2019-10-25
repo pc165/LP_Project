@@ -18,7 +18,7 @@ public:
     void setData(int  pt) { m_data = pt; }
     Node *getPrev() const { return m_pPrevious; }
     Node *getNext() const { return m_pNext; }
-    T getValor() const { return m_data; }
+    T getVal() const { return m_data; }
 
 private:
     T m_data;
