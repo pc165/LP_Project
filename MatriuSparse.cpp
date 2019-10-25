@@ -2,7 +2,7 @@
 #include <iostream>
 #include <math.h>
 #include <fstream>
-
+#include <tuple>
 MatriuSparse::MatriuSparse(const std::string &e) {
 	std::fstream f(e);
 	if (f.is_open()) {
@@ -100,10 +100,9 @@ std::vector<float> MatriuSparse::operator*(const std::vector<float> &e) {
 
 	for (int i = 0; i < nRow_; i++) {
 		for (int k = rowIndex_[i]; k < rowIndex_[i + 1]; k++) {
-			//std::cout << columnValors_[k].second << " * " << e[columnValors_[k].first] << "\n";
+			std::cout << columnValors_[k].second << " * " << e[columnValors_[k].first] << "\n";
 			result[i] += columnValors_[k].second * e[columnValors_[k].first];
 		}
-		std::cout << "\n";
 	}
 	return result;
 }
@@ -111,17 +110,31 @@ std::vector<float> MatriuSparse::operator*(const std::vector<float> &e) {
 MatriuSparse MatriuSparse::operator/(const float &e) {
 	if (cmpFloat(e, 0.0f)) throw "No es pot dividir per zero";
 
-	MatriuSparse temp(*this);
-	for (int i = 0; i < this->rowIndex_[this->nRow_]; i++)
-		this->columnValors_[i].second /= e;
+	MatriuSparse res(*this);
+	for (auto &i : res.columnValors_)
+		i.second /= e;
 
-	return temp;
+	return res;
 }
 
 
 void MatriuSparse::setVal(const int &row, const int &col, const float &value) {
 	if (row < 0 || col < 0) throw "Error: Els indexs son negatius";
-	if (cmpFloat(value, 0.0f)) return;
+
+	if (cmpFloat(value, 0.0f) && row < nRow_ && col < nCol_) { //if value == 0, delete it from matrix
+		int i = binarySearch(row, col);
+		if (i >= 0)
+			columnValors_.erase(columnValors_.begin() + i);
+		if (row + 2 != nRow_) {
+			for (int i = row + 1; i < nRow_; i++)
+				rowIndex_[i]--;
+		} else {
+			rowIndex_[row]--;
+			rowIndex_[row + 1]--;
+			rowIndex_.pop_back();
+		}
+		return;
+	}
 
 	if (!(row < nRow_ && col < nCol_)) {
 		if (col >= nCol_)
@@ -134,21 +147,22 @@ void MatriuSparse::setVal(const int &row, const int &col, const float &value) {
 		if (row == rowIndex_.size() - 2) {
 			for (int i = oldRow + 1; i < row + 2; i++)
 				rowIndex_[i] = rowIndex_[i - 1];
-			rowIndex_[row + 1]++;
+			rowIndex_.back()++;
 		} else {
 			for (int i = row + 1; i < rowIndex_.size(); i++)
 				rowIndex_[i]++;
 		}
 	} else {
 		int z = binarySearch(row, col);
-		if (z == -1) {
-			for (int i = row + 1; i < nRow_ + 1; i++)
-				rowIndex_[i]++;
-		} else {
+		if (z >= 0) {
 			columnValors_[z].second = value;
 			return;
 		}
+
+		for (int i = row + 1; i < nRow_ + 1; i++)
+			rowIndex_[i]++;
 	}
+
 	int low = rowIndex_[row], high = rowIndex_[row + 1] - 1, mid = 0;
 	while (low < high) {
 		mid = (low + high) / 2;
@@ -161,77 +175,59 @@ void MatriuSparse::setVal(const int &row, const int &col, const float &value) {
 }
 
 std::ostream &operator<<(std::ostream &a, const MatriuSparse &e) {
-	///*
-	a << "MATRIU DE FILES: " << e.nRow_ << " : COLUMNES: " << e.nCol_ << "\n";
-	for (int i = 0; i < e.nRow_; i++) {
-		a << "VALORS FILA: " << i << " "<< "(COL:VALOR)\n";
-		for (int j = e.rowIndex_[i]; j < e.rowIndex_[i + 1]; j++) {
-			a << "(" << e.columnValors_[j].first << " : " << e.columnValors_[j].second << ")";
-		}
-		a << "\n";
-	}
-	a << "MATRIUS\nVALORS\n( ";
-	for (auto &i : e.columnValors_)
-		a << i.second << " ";
-	a << ")\n COLS\n( ";
-	for (auto &i : e.columnValors_)
-		a << i.first << " ";
-	a << ")\n INIFINA\n( ";
-	for (int i = 0; i < e.nRow_; i++) {
-		a << "[" << e.rowIndex_[i] << " : " << e.rowIndex_[i + 1] << "] ";
-	}
-	a << ")\n[Num Elems:" << e.rowIndex_[e.nRow_] << "]\n\n";
-	//*/
-	/*
-	float colVal = 0;
 	for (int i = 0; i < e.nRow_; i++) {
 		for (int j = 0; j < e.nCol_; j++) {
-			e.getVal(i, j, colVal);
-			a << colVal << " ";
+			a << e.getVal(i, j) << " ";
 		}
 		a << "\n";
 	}
+	a << "\n";
 
-	///*
-	a << "\n";
-	a << "Matrix " << e.getNFiles() << "x" << e.getNColumnes() << "\n";
-	a << "[Col, Val]: ";
-	for (auto &i : e.columnValors_) {
-		a << "[" << i.first << "," << i.second << "] ";
+
+	a << "MATRIU DE FILES: " << e.nRow_ << " : COLUMNES: " << e.nCol_ << "\n";
+	for (int i = 0; i < e.nRow_; i++) {
+		a << "VALORS FILA:" << i << "(COL:VALOR)\n";
+		for (int j = e.rowIndex_[i]; j < e.rowIndex_[i + 1]; j++)
+			a << "(" << e.columnValors_[j].first << " : " << e.columnValors_[j].second << ") ";
+
+		a << "\n";
 	}
-	a << "\n";
-	a << "IndexPtr: ";
-	for (auto &i : e.rowIndex_) {
-		a << i << " ";
+	a << "MATRIUS\nVALORS\n(";
+	for (auto &i : e.columnValors_)
+		a << i.second << "  ";
+	a << ")\nCOLS\n(";
+	for (auto &i : e.columnValors_)
+		a << i.first << "  ";
+	a << ")\nINIFILA\n(";
+	for (int i = 0; i < e.nRow_; i++) {
+		a << "[ " << i << " : " << e.rowIndex_[i] << " ] ";
 	}
-	a << "\n\n";
-	//*/
+	a << " [Num Elems:" << e.rowIndex_[e.nRow_] << "] )\n";
 	return a;
 }
 
 std::ofstream &operator<<(std::ofstream &a, const MatriuSparse &e) {
-		a << "MATRIU DE FILES: " << e.nRow_ << " : COLUMNES: " << e.nCol_ << "\n";
+	a << "MATRIU DE FILES: " << e.nRow_ << " : COLUMNES: " << e.nCol_ << "\n";
 	for (int i = 0; i < e.nRow_; i++) {
-		a << "VALORS FILA: " << i << " "<< "(COL:VALOR)\n";
-		for (int j = e.rowIndex_[i]; j < e.rowIndex_[i + 1]; j++) {
-			a << "(" << e.columnValors_[j].first << " : " << e.columnValors_[j].second << ")";
-		}
+		a << "VALORS FILA:" << i << "(COL:VALOR)\n";
+		for (int j = e.rowIndex_[i]; j < e.rowIndex_[i + 1]; j++)
+			a << "(" << e.columnValors_[j].first << " : " << e.columnValors_[j].second << ") ";
+
 		a << "\n";
 	}
-	a << "MATRIUS\nVALORS\n( ";
+	a << "MATRIUS\nVALORS\n(";
 	for (auto &i : e.columnValors_)
-		a << i.second << " ";
-	a << ")\n COLS\n( ";
+		a << i.second << "  ";
+	a << ")\nCOLS\n(";
 	for (auto &i : e.columnValors_)
-		a << i.first << " ";
-	a << ")\n INIFINA\n( ";
+		a << i.first << "  ";
+	a << ")\nINIFILA\n(";
 	for (int i = 0; i < e.nRow_; i++) {
-		a << "[" << e.rowIndex_[i] << " : " << e.rowIndex_[i + 1] << "] ";
+		a << "[ " << i << " : " << e.rowIndex_[i] << " ] ";
 	}
-	a << ")\n[Num Elems:" << e.rowIndex_[e.nRow_] << "]\n\n";
+	a << " [Num Elems:" << e.rowIndex_[e.nRow_] << "] )\n";
 	return a;
 }
-
 
 bool MatriuSparse::getVal(const int &row, const int &col, float &value) const {
 	if (row < 0 || col < 0) throw "Error: Els indexs son negatius";
