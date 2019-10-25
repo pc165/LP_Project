@@ -338,3 +338,23 @@ ASALocalRun/
 
 # BeatPulse healthcheck temp database
 healthchecksdb
+/MatProdX1COORDEsperat.txt
+/MatProdX1COORD.txt
+/MatProdSubEpi2OrdenatCOORDEsperat.txt
+/MatProdEpiOrdenatCOORDEsperat.txt
+/MatDivX1COORDEsperat.txt
+/MatDivX1COORD.txt
+/MatDivSubEpi2OrdenatCOORDEsperat.txt
+/MatDivEpiOrdenatCOORDEsperat.txt
+/VectProdX1Esperat.txt
+/VectProdX1COORDEsperat.txt
+/VectProdSubEpi2OrdenatEsperat.txt
+/VectProdSubEpi2OrdenatCOORDEsperat.txt
+/VectProdEpiOrdenatCOORDEsperat.txt
+/ResX1COORDEsperat.txt
+/ResX1COORD.txt
+/ResSubEpi2OrdenatCOORDEsperat.txt
+/ResEpiOrdenatCOORDEsperat.txt
+/ResCompMatProdX1.txt
+/ResCompMatDivX1.txt
+/ResComparaX1.txt

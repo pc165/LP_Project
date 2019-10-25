@@ -15,6 +15,7 @@ public:
     float getVal(const int &row, const int &col) const;
     void init(const int &row, const int &col);
     friend std::ostream &operator<<(std::ostream &a, const MatriuSparse &e);
+    friend std::ofstream &operator<<(std::ofstream &a, const MatriuSparse &e);
     MatriuSparse operator+(const MatriuSparse &e);
     MatriuSparse operator-(const MatriuSparse &e);
     MatriuSparse operator*(const MatriuSparse &e);

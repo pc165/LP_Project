@@ -1,4 +1,4 @@
-#include "Matrix.h"
+#include "MatriuSparse.h"
 #include <iostream>
 #include <math.h>
 #include <fstream>
@@ -6,9 +6,9 @@
 MatriuSparse::MatriuSparse(const std::string &e) {
 	std::fstream f(e);
 	if (f.is_open()) {
-		int row, col;
-		f >> row >> col;
-		init(row, col);
+		//int row, col;
+		//f >> row >> col;
+		//init(row, col);
 		int x = 0, y = 0;
 		while (!f.eof()) {
 			f >> x >> y;
@@ -161,10 +161,10 @@ void MatriuSparse::setVal(const int &row, const int &col, const float &value) {
 }
 
 std::ostream &operator<<(std::ostream &a, const MatriuSparse &e) {
-	/*
+	///*
 	a << "MATRIU DE FILES: " << e.nRow_ << " : COLUMNES: " << e.nCol_ << "\n";
 	for (int i = 0; i < e.nRow_; i++) {
-		a << "VALORS FILA: " << i << "<< (COL:VALOR)\n";
+		a << "VALORS FILA: " << i << " "<< "(COL:VALOR)\n";
 		for (int j = e.rowIndex_[i]; j < e.rowIndex_[i + 1]; j++) {
 			a << "(" << e.columnValors_[j].first << " : " << e.columnValors_[j].second << ")";
 		}
@@ -182,7 +182,7 @@ std::ostream &operator<<(std::ostream &a, const MatriuSparse &e) {
 	}
 	a << ")\n[Num Elems:" << e.rowIndex_[e.nRow_] << "]\n\n";
 	//*/
-	///*
+	/*
 	float colVal = 0;
 	for (int i = 0; i < e.nRow_; i++) {
 		for (int j = 0; j < e.nCol_; j++) {
@@ -206,6 +206,29 @@ std::ostream &operator<<(std::ostream &a, const MatriuSparse &e) {
 	}
 	a << "\n\n";
 	//*/
+	return a;
+}
+
+std::ofstream &operator<<(std::ofstream &a, const MatriuSparse &e) {
+		a << "MATRIU DE FILES: " << e.nRow_ << " : COLUMNES: " << e.nCol_ << "\n";
+	for (int i = 0; i < e.nRow_; i++) {
+		a << "VALORS FILA: " << i << " "<< "(COL:VALOR)\n";
+		for (int j = e.rowIndex_[i]; j < e.rowIndex_[i + 1]; j++) {
+			a << "(" << e.columnValors_[j].first << " : " << e.columnValors_[j].second << ")";
+		}
+		a << "\n";
+	}
+	a << "MATRIUS\nVALORS\n( ";
+	for (auto &i : e.columnValors_)
+		a << i.second << " ";
+	a << ")\n COLS\n( ";
+	for (auto &i : e.columnValors_)
+		a << i.first << " ";
+	a << ")\n INIFINA\n( ";
+	for (int i = 0; i < e.nRow_; i++) {
+		a << "[" << e.rowIndex_[i] << " : " << e.rowIndex_[i + 1] << "] ";
+	}
+	a << ")\n[Num Elems:" << e.rowIndex_[e.nRow_] << "]\n\n";
 	return a;
 }
 
