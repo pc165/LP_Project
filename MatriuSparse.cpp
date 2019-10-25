@@ -100,7 +100,7 @@ std::vector<float> MatriuSparse::operator*(const std::vector<float> &e) {
 
 	for (int i = 0; i < nRow_; i++) {
 		for (int k = rowIndex_[i]; k < rowIndex_[i + 1]; k++) {
-			std::cout << columnValors_[k].second << " * " << e[columnValors_[k].first] << "\n";
+			//std::cout << columnValors_[k].second << " * " << e[columnValors_[k].first] << "\n";
 			result[i] += columnValors_[k].second * e[columnValors_[k].first];
 		}
 	}
@@ -173,16 +173,19 @@ void MatriuSparse::setVal(const int &row, const int &col, const float &value) {
 	}
 	columnValors_.insert(columnValors_.begin() + low, std::make_pair(col, value));
 }
+
 template<typename T>
 T &format(T &a, const MatriuSparse &e) {
 	a << "MATRIU DE FILES: " << e.getNFiles() << " : COLUMNES: " << e.getNColumnes() << "\n";
 	for (int i = 0; i < e.nRow_; i++) {
-		if (e.rowIndex_[i] != e.rowIndex_[i + 1]) {
-			a << "VALORS FILA:" << i << "(COL:VALOR)\n";
-			for (int j = e.rowIndex_[i]; j < e.rowIndex_[i + 1]; j++)
-				a << "(" << e.columnValors_[j].first << " : " << e.columnValors_[j].second << ") ";
-			a << "\n";
-		}
+		if (e.rowIndex_[i] == e.rowIndex_[i + 1])
+			i = e.searchFirstNotEqual(i, e.nRow_, e.rowIndex_) - 1;
+
+		a << "VALORS FILA:" << i << "(COL:VALOR)\n";
+		for (int j = e.rowIndex_[i]; j < e.rowIndex_[i + 1]; j++)
+			a << "(" << e.columnValors_[j].first << " : " << e.columnValors_[j].second << ") ";
+		a << "\n";
+
 	}
 	a << "MATRIUS\nVALORS\n(";
 	for (auto &i : e.columnValors_)
@@ -192,8 +195,9 @@ T &format(T &a, const MatriuSparse &e) {
 		a << i.first << "  ";
 	a << ")\nINIFILA\n(";
 	for (int i = 0; i < e.nRow_; i++) {
-		if (e.rowIndex_[i] != e.rowIndex_[i + 1])
-			a << "[ " << i << " : " << e.rowIndex_[i] << " ] ";
+		if (e.rowIndex_[i] == e.rowIndex_[i + 1])
+			i = e.searchFirstNotEqual(i, e.nRow_, e.rowIndex_);
+		a << "[ " << i << " : " << e.rowIndex_[i] << " ] ";
 	}
 	a << " [Num Elems:" << e.rowIndex_[e.nRow_] << "] )\n";
 	return a;
@@ -212,7 +216,7 @@ bool MatriuSparse::getVal(const int &row, const int &col, float &value) const {
 	int i = binarySearch(row, col);
 	if (i != -1)
 		value = columnValors_[i].second;
-	return  (row < nRow_ && col < nCol_);
+	return  (row < getNFiles() && col < nCol_);
 }
 
 float MatriuSparse::getVal(const int &row, const int &col) const {
@@ -254,12 +258,25 @@ int MatriuSparse::binarySearch(const int &row, const int &col) const {
 		while (L <= H) {
 			i = ceil((L + H) / 2);
 			if (columnValors_[i].first > col)
-				H = i - 1;
+				H = --i;
 			else if (columnValors_[i].first < col)
-				L = i + 1;
+				L = ++i;
 			else
 				return i;
 		}
 	}
 	return -1;
+}
+
+template<typename T>
+int MatriuSparse::searchFirstNotEqual(const int &min, const int &max, T vector) const {
+	int low = min, high = max, mid = 0;
+	while (low < high) {
+		mid = (low + high) / 2;
+		if (vector[low] != vector[mid])
+			high = --mid;
+		else if (vector[low] == vector[mid])
+			low = ++mid;
+	}
+	return low;
 }

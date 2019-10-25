@@ -34,6 +34,9 @@ public:
 private:
 	void copy(const MatriuSparse &e);
 	int binarySearch(const int &row, const int &col) const;
+	template<typename T = std::vector<int>>
+	int searchFirstNotEqual(const int &min, const int &max, T vector) const;
+
 
 private:
 	std::vector<int> rowIndex_;
