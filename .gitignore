@@ -387,3 +387,5 @@ healthchecksdb
 /ResCompEpiOrdenat.txt
 /MatProdEpiOrdenat.txt
 /MatDivEpiOrdenat.txt
+/VectProdEpiOrdenat.txt
+/ResCompVectProdEpiOrdenat.txt

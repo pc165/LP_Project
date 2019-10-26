@@ -6,14 +6,37 @@
 MatriuSparse::MatriuSparse(const std::string &e) {
 	std::fstream f(e);
 	if (f.is_open()) {
-		//int row, col;
-		//f >> row >> col;
-		//init(row, col);
-		int x = 0, y = 0;
-		while (!f.eof()) {
+		int count = 0;
+		std::string line, lastLine; // count lines
+		while (std::getline(f, line))
+			if (line.size() > 1) {
+				lastLine = line;
+				count++;
+			}
+		lastLine = lastLine.substr(0, lastLine.find('\t')); // find last X coordinate
+		columnValors_.resize(count, std::pair<int, float>(0, 1));
+		nRow_ = std::stoi(lastLine) + 1;
+		rowIndex_.resize(nRow_ + 1);
+		rowIndex_.back() = count;
+
+		f.clear();
+		f.seekg(0, f.beg);
+		int x = 0, xTemp = 0, y = 0, countIndex = 0;
+		count = 0;
+		while (!f.eof() && count < columnValors_.size()) {
 			f >> x >> y;
-			setVal(x, y, 1);
+			columnValors_[count].first = y;
+			if (y > nCol_)
+				nCol_ = y;
+			if (x != xTemp) {
+				for (int i = xTemp; i < x; i++) {
+					rowIndex_[i + 1] = count;
+				}
+				xTemp = x;
+			}
+			count++;
 		}
+		nCol_++;
 		f.close();
 	}
 }
@@ -179,7 +202,7 @@ T &format(T &a, const MatriuSparse &e) {
 	a << "MATRIU DE FILES: " << e.getNFiles() << " : COLUMNES: " << e.getNColumnes() << "\n";
 	for (int i = 0; i < e.nRow_; i++) {
 		if (e.rowIndex_[i] == e.rowIndex_[i + 1])
-			i = e.searchFirstNotEqual(i, e.nRow_, e.rowIndex_) - 1;
+			i = e.searchFirstGreater(i, e.nRow_ - 1, e.rowIndex_[i], e.rowIndex_) - 1;
 
 		a << "VALORS FILA:" << i << "(COL:VALOR)\n";
 		for (int j = e.rowIndex_[i]; j < e.rowIndex_[i + 1]; j++)
@@ -196,7 +219,7 @@ T &format(T &a, const MatriuSparse &e) {
 	a << ")\nINIFILA\n(";
 	for (int i = 0; i < e.nRow_; i++) {
 		if (e.rowIndex_[i] == e.rowIndex_[i + 1])
-			i = e.searchFirstNotEqual(i, e.nRow_, e.rowIndex_);
+			i = e.searchFirstGreater(i, e.nRow_, e.rowIndex_[i], e.rowIndex_) - 1;
 		a << "[ " << i << " : " << e.rowIndex_[i] << " ] ";
 	}
 	a << " [Num Elems:" << e.rowIndex_[e.nRow_] << "] )\n";
@@ -269,14 +292,14 @@ int MatriuSparse::binarySearch(const int &row, const int &col) const {
 }
 
 template<typename T>
-int MatriuSparse::searchFirstNotEqual(const int &min, const int &max, T vector) const {
+int MatriuSparse::searchFirstGreater(const int &min, const int &max, const int &val, T vector) const {
 	int low = min, high = max, mid = 0;
 	while (low < high) {
 		mid = (low + high) / 2;
-		if (vector[low] != vector[mid])
-			high = --mid;
-		else if (vector[low] == vector[mid])
+		if (!(val < vector[mid]))
 			low = ++mid;
+		else
+			high = mid;
 	}
 	return low;
 }

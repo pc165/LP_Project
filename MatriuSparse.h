@@ -34,13 +34,14 @@ public:
 private:
 	void copy(const MatriuSparse &e);
 	int binarySearch(const int &row, const int &col) const;
-	template<typename T = std::vector<int>>
-	int searchFirstNotEqual(const int &min, const int &max, T vector) const;
+	template<typename T>
+	int searchFirstGreater(const int &min, const int &max, const int &val, T vector) const;
 
 
 private:
 	std::vector<int> rowIndex_;
 	std::vector<std::pair<int, float>> columnValors_;
 	int nRow_, nCol_;
+
 
 };
