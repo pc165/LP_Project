@@ -1,8 +1,11 @@
 #include "MatriuSparse.h"
+#include <vector>
 #include <iostream>
-#include <math.h>
 #include <fstream>
-#include <tuple>
+#include <string>
+#include <math.h>
+#define FLT_EPSILON      1.192092896e-07F        // smallest such that 1.0+FLT_EPSILON != 1.0, en caronte no funciona sense aquesta linea
+
 MatriuSparse::MatriuSparse(const std::string &e) {
 	std::fstream f(e);
 	if (f.is_open()) {
