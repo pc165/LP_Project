@@ -18,8 +18,6 @@ public:
 	void init(const int &row, const int &col);
 	friend std::ostream &operator<<(std::ostream &a, const MatriuSparse &e);
 	friend std::ofstream &operator<<(std::ofstream &a, const MatriuSparse &e);
-	template<typename T>
-	friend T &format(T &a, const MatriuSparse &e);
 	MatriuSparse operator+(const MatriuSparse &e);
 	MatriuSparse operator-(const MatriuSparse &e);
 	MatriuSparse operator*(const MatriuSparse &e);
@@ -34,11 +32,12 @@ public:
 	inline int getNFiles()const { return nCol_;/*return nRow_;*/ }
 	inline int getNColumnes()const { return nCol_; }
 private:
+	template<typename T>
+	friend T &format(T &a, const MatriuSparse &e);
 	void copy(const MatriuSparse &e);
 	int binarySearch(const int &row, const int &col) const;
-	template<typename T>
-	int searchFirstGreater(const int &min, const int &max, const int &val, T vector) const;
-
+	template<typename T, typename CMP>
+	int searchFirstGreater(const int &min, const int &max, const int &val, T vector, CMP cmp) const;
 
 private:
 	std::vector<int> rowIndex_;

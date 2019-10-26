@@ -6,7 +6,9 @@
 #include <math.h>
 #define FLT_EPSILON      1.192092896e-07F        // smallest such that 1.0+FLT_EPSILON != 1.0, en caronte no funciona sense aquesta linea
 
-MatriuSparse::MatriuSparse(const std::string &e) {
+
+
+MatriuSparse::MatriuSparse(const std::string &e):nRow_(0), nCol_(0) {
 	std::fstream f(e);
 	if (f.is_open()) {
 		int count = 0;
@@ -126,7 +128,6 @@ std::vector<float> MatriuSparse::operator*(const std::vector<float> &e) {
 
 	for (int i = 0; i < nRow_; i++) {
 		for (int k = rowIndex_[i]; k < rowIndex_[i + 1]; k++) {
-			//std::cout << columnValors_[k].second << " * " << e[columnValors_[k].first] << "\n";
 			result[i] += columnValors_[k].second * e[columnValors_[k].first];
 		}
 	}
@@ -143,11 +144,14 @@ MatriuSparse MatriuSparse::operator/(const float &e) {
 	return res;
 }
 
+bool comparePair(const int &a, std::pair<int, float> b) {
+	return !(a < b.first);
+}
 
 void MatriuSparse::setVal(const int &row, const int &col, const float &value) {
 	if (row < 0 || col < 0) throw "Error: Els indexs son negatius";
 
-	if (cmpFloat(value, 0.0f) && row < nRow_ && col < nCol_) { //if value == 0, delete it from matrix
+	if (cmpFloat(value, 0.0f) && row < nRow_ && col < nCol_) {
 		int i = binarySearch(row, col);
 		if (i >= 0)
 			columnValors_.erase(columnValors_.begin() + i);
@@ -189,15 +193,13 @@ void MatriuSparse::setVal(const int &row, const int &col, const float &value) {
 			rowIndex_[i]++;
 	}
 
-	int low = rowIndex_[row], high = rowIndex_[row + 1] - 1, mid = 0;
-	while (low < high) {
-		mid = (low + high) / 2;
-		if (!(col < columnValors_[mid].first))
-			low = ++mid;
-		else
-			high = mid;
-	}
+	int low = searchFirstGreater(rowIndex_[row], rowIndex_[row + 1] - 1, col, columnValors_, comparePair);
 	columnValors_.insert(columnValors_.begin() + low, std::make_pair(col, value));
+}
+
+
+bool compareInt(const int &a, const int &b) {
+	return !(a < b);
 }
 
 template<typename T>
@@ -205,7 +207,7 @@ T &format(T &a, const MatriuSparse &e) {
 	a << "MATRIU DE FILES: " << e.getNFiles() << " : COLUMNES: " << e.getNColumnes() << "\n";
 	for (int i = 0; i < e.nRow_; i++) {
 		if (e.rowIndex_[i] == e.rowIndex_[i + 1])
-			i = e.searchFirstGreater(i, e.nRow_ - 1, e.rowIndex_[i], e.rowIndex_) - 1;
+			i = e.searchFirstGreater(i, e.nRow_ - 1, e.rowIndex_[i], e.rowIndex_, compareInt) - 1;
 
 		a << "VALORS FILA:" << i << "(COL:VALOR)\n";
 		for (int j = e.rowIndex_[i]; j < e.rowIndex_[i + 1]; j++)
@@ -222,7 +224,7 @@ T &format(T &a, const MatriuSparse &e) {
 	a << ")\nINIFILA\n(";
 	for (int i = 0; i < e.nRow_; i++) {
 		if (e.rowIndex_[i] == e.rowIndex_[i + 1])
-			i = e.searchFirstGreater(i, e.nRow_, e.rowIndex_[i], e.rowIndex_) - 1;
+			i = e.searchFirstGreater(i, e.nRow_, e.rowIndex_[i], e.rowIndex_, compareInt) - 1;
 		a << "[ " << i << " : " << e.rowIndex_[i] << " ] ";
 	}
 	a << " [Num Elems:" << e.rowIndex_[e.nRow_] << "] )\n";
@@ -294,15 +296,16 @@ int MatriuSparse::binarySearch(const int &row, const int &col) const {
 	return -1;
 }
 
-template<typename T>
-int MatriuSparse::searchFirstGreater(const int &min, const int &max, const int &val, T vector) const {
+template<typename T, typename CMP>
+int MatriuSparse::searchFirstGreater(const int &min, const int &max, const int &val, T vector, CMP cmp) const {
 	int low = min, high = max, mid = 0;
 	while (low < high) {
 		mid = (low + high) / 2;
-		if (!(val < vector[mid]))
+		if (cmp(val, vector[mid]))
 			low = ++mid;
 		else
 			high = mid;
 	}
 	return low;
 }
+
