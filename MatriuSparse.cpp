@@ -7,7 +7,6 @@
 #define FLT_EPSILON      1.192092896e-07F        // smallest such that 1.0+FLT_EPSILON != 1.0, en caronte no funciona sense aquesta linea
 
 
-
 MatriuSparse::MatriuSparse(const std::string &e):nRow_(0), nCol_(0) {
 	std::fstream f(e);
 	if (f.is_open()) {
