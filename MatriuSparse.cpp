@@ -121,7 +121,7 @@ MatriuSparse MatriuSparse::operator*(const float &e) {
 }
 
 std::vector<float> MatriuSparse::operator*(const std::vector<float> &e) {
-	if (this->nCol_ != e.size()) throw "Producte invalid, el numero de files no es igual al de columnes";
+	if (this->getNColumnes() != e.size()) throw "Producte invalid, el numero de files no es igual al de columnes";
 
 	std::vector<float> result(this->nRow_, 0);
 
@@ -220,13 +220,13 @@ T &format(T &a, const MatriuSparse &e) {
 	a << ")\nCOLS\n(";
 	for (auto &i : e.columnValors_)
 		a << i.first << "  ";
-	a << ")\nINIFILA\n(";
+	a << ")\nINIFILA\n(" << std::flush; // write to disk and empty the buffer, for very long arrays
 	for (int i = 0; i < e.nRow_; i++) {
 		if (e.rowIndex_[i] == e.rowIndex_[i + 1])
 			i = e.searchFirstGreater(i, e.nRow_, e.rowIndex_[i], e.rowIndex_, compareInt) - 1;
 		a << "[ " << i << " : " << e.rowIndex_[i] << " ] ";
 	}
-	a << " [Num Elems:" << e.rowIndex_[e.nRow_] << "] )\n";
+	a << " [Num Elems:" << e.rowIndex_[e.nRow_] << "] )\n" << std::flush;
 	return a;
 }
 

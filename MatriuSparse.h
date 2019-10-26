@@ -29,8 +29,8 @@ public:
 	void setRow(const int &e);
 	void setCol(const int &e);
 	void setRowCol(const int &e, const int &a);
-	inline int getNFiles()const { return nCol_;/*return nRow_;*/ }
-	inline int getNColumnes()const { return nCol_; }
+	inline int getNFiles()const { return nCol_ > nRow_ ? nCol_ : nRow_;/*return nRow_;*/ }
+	inline int getNColumnes()const { return nCol_ > nRow_ ? nCol_ : nRow_; }
 private:
 	template<typename T>
 	friend T &format(T &a, const MatriuSparse &e);
