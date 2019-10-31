@@ -4,55 +4,61 @@
 #include <fstream>
 #include <string>
 #include <math.h>
-#define FLT_EPSILON      1.192092896e-07F        // smallest such that 1.0+FLT_EPSILON != 1.0, en caronte no funciona sense aquesta linea
-
+#define FLT_EPSILON 1.192092896e-07F // smallest such that 1.0+FLT_EPSILON != 1.0, this is needed to compare floats.
 
 MatriuSparse::MatriuSparse(const std::string &e):nRow_(0), nCol_(0) {
     std::fstream f(e);
     if (f.is_open()) {
         int count = 0;
-        std::string line, lastLine; // count lines
-        while (std::getline(f, line))
-            if (line.size() > 1) {
-                lastLine = line;
+        std::string line, lastLine;
+        while (std::getline(f, line)) // count the number of non-empty (more than one character) lines from the file
+            if (line.size() > 1) { // if there are more than one character
+                lastLine = line; // save last non-empty line
                 count++;
             }
-        lastLine = lastLine.substr(0, lastLine.find('\t')); // find last X coordinate
-        columnValors_.resize(count, std::pair<int, float>(0, 1));
-        nRow_ = std::stoi(lastLine) + 1;
-        rowIndex_.resize(nRow_ + 1);
-        rowIndex_.back() = count;
+        lastLine = lastLine.substr(0, lastLine.find('\t')); // find X coordinate, the data is sperarated by a tab (\t)
+        columnValors_.resize(count, std::pair<int, float>(0, 1)); // resize to the number of 
 
-        f.clear();
-        f.seekg(0, f.beg);
-        int x = 0, xTemp = 0, y = 0, countIndex = 0;
+        nRow_ = std::stoi(lastLine) + 1; // stoi = String TO Integer, add 1 because the file starts to count from 0.
+        rowIndex_.resize(nRow_ + 1); // we need an extra space to store the number of values in the matrix
+        rowIndex_.back() = count; // rowIndex_.back() == columnValors_.size()
+
+        f.clear(); // clear flags (end flag)
+        f.seekg(0, f.beg); // return to the beginning of the file
+        int newX = 0, oldX = 0, y = 0, countIndex = 0;
         count = 0;
         while (!f.eof() && count < columnValors_.size()) {
-            f >> x >> y;
+            f >> newX >> y;
             columnValors_[count].first = y;
-            if (y > nCol_)
+            if (y > nCol_) // set the number of columns to the biggest column
                 nCol_ = y;
-            if (x != xTemp) {
-                for (int i = xTemp; i < x; i++) {
-                    rowIndex_[i + 1] = count;
-                }
-                xTemp = x;
+            if (newX != oldX) { // if we changed of row then update the values from oldX to the new X
+                for (int i = oldX; i < newX; i++)
+                    rowIndex_[i + 1] = count; //rowindex_[i] - rowindex[i+1] = number of elements in the i row
+                oldX = newX;
             }
             count++;
         }
-        nCol_++;
+        nCol_++; // add one because the file started to count the columns from 0
         f.close();
     }
 }
 
-inline bool cmpFloat(const float &e, const float &a) {
+inline bool cmpFloat(const float &e, const float &a) { // we need this function to compare floats, fabs = float aboslute value
     return(fabs(e - a) < FLT_EPSILON);
+}
+
+bool compareInt(const int &a, const int &b) {
+    return !(a < b);
+}
+
+bool comparePair(const int &a, std::pair<int, float> b) {
+    return !(a < b.first);
 }
 
 MatriuSparse::MatriuSparse() {
     this->init(0, 0);
 }
-
 
 MatriuSparse::MatriuSparse(const int &row, const int &col) {
     this->init(row, col);
@@ -73,6 +79,15 @@ void MatriuSparse::copy(const MatriuSparse &e) {
     columnValors_ = e.columnValors_;
 }
 
+int MatriuSparse::numberOfValuesInColumn(const int &col) {
+    int sum = 0;
+    for (int i = 0; i < rowIndex_.size(); i++)
+        for (int j = rowIndex_[i]; j < rowIndex_[i + 1]; j++)
+            if (columnValors_[j].first == col)
+                sum++;
+    return sum;
+}
+
 
 void MatriuSparse::init(const int &row, const int &col) {
     if (row < 0 || col < 0) throw "Error: Les columnes i files han de ser positius\n";
@@ -89,7 +104,7 @@ MatriuSparse MatriuSparse::operator-(const MatriuSparse &e) {
     return MatriuSparse();
 }
 
-MatriuSparse MatriuSparse::operator*(const MatriuSparse &e) {
+MatriuSparse MatriuSparse::operator*(const MatriuSparse &e) { // this function is not needed
     if (this->nCol_ != e.nRow_) throw "Producte invalid, el numero de files no es igual al de columnes";
     MatriuSparse res(this->nRow_, e.nCol_);
     float suma = 0;
@@ -104,18 +119,15 @@ MatriuSparse MatriuSparse::operator*(const MatriuSparse &e) {
         }
     }
     return res;
-
 }
 
 MatriuSparse MatriuSparse::operator*(const float &e) {
-    MatriuSparse res(*this);
+    MatriuSparse res(*this); // make a copy of the matrix
     if (cmpFloat(e, 0)) {
-        res.columnValors_.resize(0);
-        for (auto &i : res.rowIndex_)
-            i = 0;
+        init(0, 0); // A*0 = 0
     } else {
-        for (auto &i : res.columnValors_)
-            i.second *= e;
+        for (auto &i : res.columnValors_) // the same as: for (vector<pair<int,float>>::iterator it = res.columnValors_.begin(); it != res.columnValors_.end(); it++)
+            i.second *= e; // multiply each value
     }
     return res;
 }
@@ -123,12 +135,19 @@ MatriuSparse MatriuSparse::operator*(const float &e) {
 std::vector<float> MatriuSparse::operator*(const std::vector<float> &e) {
     if (this->getNColumnes() != e.size()) throw "Producte invalid, el numero de files no es igual al de columnes";
 
-    std::vector<float> result(this->nRow_, 0);
+    std::vector<float> result(nRow_, 0); // vector of nRow_ filled with 0
 
-    for (int i = 0; i < nRow_; i++) {
-        for (int k = rowIndex_[i]; k < rowIndex_[i + 1]; k++) {
+    for (int i = 0; i < nRow_; i++) { // loop through all the rows
+        if (rowIndex_[i] == rowIndex_[i + 1])
+            i = searchFirstGreater(i, nRow_, rowIndex_[i], rowIndex_, compareInt) - 1; // log(n) search, more efficient, less comparations
+            /* A = [0 0 0 0 0 0 2 3 3 3 3 3 4 4 4 4 4 4]
+               i = 0 // start from 0
+               A[i] == A[i + 1] //if they are equal
+               i = searchFirstGreater(...); // i == 6, in log(n)
+            */
+        for (int k = rowIndex_[i]; k < rowIndex_[i + 1]; k++)
             result[i] += columnValors_[k].second * e[columnValors_[k].first];
-        }
+
     }
     return result;
 }
@@ -143,24 +162,42 @@ MatriuSparse MatriuSparse::operator/(const float &e) {
     return res;
 }
 
-bool comparePair(const int &a, std::pair<int, float> b) {
-    return !(a < b.first);
-}
 
+//row and col starts from 0
 void MatriuSparse::setVal(const int &row, const int &col, const float &value) {
     if (row < 0 || col < 0) throw "Error: Els indexs son negatius";
 
-    if (cmpFloat(value, 0.0f) && row < nRow_ && col < nCol_) {
-        int i = binarySearch(row, col);
-        if (i >= 0)
-            columnValors_.erase(columnValors_.begin() + i);
-        if (row + 2 != nRow_) {
-            for (int i = row + 1; i < rowIndex_.size(); i++)
-                rowIndex_[i]--;
-        } else {
-            rowIndex_[row]--;
-            rowIndex_[row + 1]--;
-            rowIndex_.pop_back();
+    if (cmpFloat(value, 0.0f) && row < nRow_ && col < nCol_) { // if value is in the matrix and value == 0
+        int i = binarySearch(row, col); // find value in the array, i>=0 if found, -1 == not found
+        if (i >= 0) {
+            /*
+            0 0 0 0 1        0 0 0 0 1           0 0 0
+            0 1 0 0 0        0 1 0 0 0           0 1 0
+            setVal(1,1,0)    setVal(0,4,0)       0 0 1
+            0 0 0 0 1        0 0                 setVal(2,2,0)
+                             0 1                 0 0
+                                                 0 1
+            */
+            columnValors_.erase(columnValors_.begin() + i); // erase the value
+            if (row + 1 != nRow_) { // if the value wasn't in the last row
+                for (int i = row + 1; i < rowIndex_.size(); i++)
+                    rowIndex_[i]--; // substract 1 from row + 1 to nRow + 1
+            } else { // if it was the last row
+                rowIndex_[row + 1]--;
+                if (rowIndex_[row] - rowIndex_[row + 1] == 0) { // if there are no elements in the last row
+                    rowIndex_.pop_back();
+                    nRow_--;
+                }
+            }
+
+            if (col + 1 == nCol_ && numberOfValuesInColumn(col) == 0) { // if it was in the last column and was the last value in the column, find max column
+                int maxCol = columnValors_[rowIndex_[1] - 1].first;
+                for (int i = 0; i < rowIndex_.size(); i++) {
+                    if (columnValors_[rowIndex_[i + 1] - 1].first > maxCol)
+                        maxCol = columnValors_[rowIndex_[i + 1] - 1].first;
+                }
+                nCol_ = maxCol + 1;
+            }
         }
         return;
     }
@@ -194,11 +231,6 @@ void MatriuSparse::setVal(const int &row, const int &col, const float &value) {
 
     int low = searchFirstGreater(rowIndex_[row], rowIndex_[row + 1] - 1, col, columnValors_, comparePair);
     columnValors_.insert(columnValors_.begin() + low, std::make_pair(col, value));
-}
-
-
-bool compareInt(const int &a, const int &b) {
-    return !(a < b);
 }
 
 template<typename T>

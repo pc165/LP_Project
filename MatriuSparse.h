@@ -35,6 +35,7 @@ private:
     template<typename T>
     friend T &format(T &a, const MatriuSparse &e);
     void copy(const MatriuSparse &e);
+    int numberOfValuesInColumn(const int &col);
     int binarySearch(const int &row, const int &col) const;
     template<typename T, typename CMP>
     int searchFirstGreater(const int &min, const int &max, const int &val, T vector, CMP cmp) const;
