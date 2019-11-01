@@ -29,9 +29,11 @@ public:
     void setRow(const int &e);
     void setCol(const int &e);
     void setRowCol(const int &e, const int &a);
-    inline int getNFiles()const { return nCol_ > nRow_ ? nCol_ : nRow_;/*return nRow_;*/ }
+    inline int getNFiles()const { return nCol_ > nRow_ ? nCol_ : nRow_; } // square matrix, return the biggets number
     inline int getNColumnes()const { return nCol_ > nRow_ ? nCol_ : nRow_; }
 private:
+    void insertValue(const int &row,const int &col,const int &value);
+    void removeValue(const int &row, const int &col);
     template<typename T>
     friend T &format(T &a, const MatriuSparse &e);
     void copy(const MatriuSparse &e);
