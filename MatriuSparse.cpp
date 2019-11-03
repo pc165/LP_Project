@@ -96,30 +96,23 @@ void MatriuSparse::init(const int &row, const int &col) {
     rowIndex_.resize(nRow_ + 1);
 }
 
-MatriuSparse MatriuSparse::operator+(const MatriuSparse &e) {
-    return MatriuSparse();
-}
 
-MatriuSparse MatriuSparse::operator-(const MatriuSparse &e) {
-    return MatriuSparse();
-}
-
-MatriuSparse MatriuSparse::operator*(const MatriuSparse &e) { // this function is not needed
-    if (this->nCol_ != e.nRow_) throw "Producte invalid, el numero de files no es igual al de columnes";
-    MatriuSparse res(this->nRow_, e.nCol_);
-    float suma = 0;
-    int index = -1;
-    for (int i = 0; i < this->nRow_; i++) {
-        for (int j = 0; j < e.nCol_; j++) {
-            for (int z = 0; z < nCol_; z++) {
-                suma += getVal(i, z) * e.getVal(z, j);
-            }
-            res.setVal(i, j, suma);
-            suma = 0;
-        }
-    }
-    return res;
-}
+//MatriuSparse MatriuSparse::operator*(const MatriuSparse &e) { // this function is not needed
+//    if (this->nCol_ != e.nRow_) throw "Producte invalid, el numero de files no es igual al de columnes";
+//    MatriuSparse res(this->nRow_, e.nCol_);
+//    float suma = 0;
+//    int index = -1;
+//    for (int i = 0; i < this->nRow_; i++) {
+//        for (int j = 0; j < e.nCol_; j++) {
+//            for (int z = 0; z < nCol_; z++) {
+//                suma += getVal(i, z) * e.getVal(z, j);
+//            }
+//            res.setVal(i, j, suma);
+//            suma = 0;
+//        }
+//    }
+//    return res;
+//}
 
 MatriuSparse MatriuSparse::operator*(const float &e) {
     MatriuSparse res(*this);
@@ -138,8 +131,8 @@ std::vector<float> MatriuSparse::operator*(const std::vector<float> &e) {
     std::vector<float> result(nRow_, 0);
 
     for (int i = 0; i < nRow_; i++) {
-        if (rowIndex_[i] == rowIndex_[i + 1])
-            i = searchFirstGreater(i, nRow_, rowIndex_[i], rowIndex_, compareInt) - 1;
+        if (rowIndex_[i] != rowIndex_[i + 1])
+            //i = searchFirstGreater(i, nRow_, rowIndex_[i], rowIndex_, compareInt) - 1;
         for (int k = rowIndex_[i]; k < rowIndex_[i + 1]; k++)
             result[i] += columnValors_[k].second * e[columnValors_[k].first];
 
@@ -243,14 +236,14 @@ template<typename T>
 T &format(T &a, const MatriuSparse &e) {
     a << "MATRIU DE FILES: " << e.getNFiles() << " : COLUMNES: " << e.getNColumnes() << "\n";
     for (int i = 0; i < e.nRow_; i++) {
-        if (e.rowIndex_[i] == e.rowIndex_[i + 1])
-            i = e.searchFirstGreater(i, e.nRow_ - 1, e.rowIndex_[i], e.rowIndex_, compareInt) - 1;
+        if (e.rowIndex_[i] != e.rowIndex_[i + 1]){
+            //i = e.searchFirstGreater(i, e.nRow_ - 1, e.rowIndex_[i], e.rowIndex_, compareInt) - 1;
 
         a << "VALORS FILA:" << i << "(COL:VALOR)\n";
         for (int j = e.rowIndex_[i]; j < e.rowIndex_[i + 1]; j++)
             a << "(" << e.columnValors_[j].first << " : " << e.columnValors_[j].second << ") ";
         a << "\n";
-
+        }
     }
     a << "MATRIUS\nVALORS\n(";
     for (auto &i : e.columnValors_)
@@ -260,8 +253,8 @@ T &format(T &a, const MatriuSparse &e) {
         a << i.first << "  ";
     a << ")\nINIFILA\n(" << std::flush; // write to disk and empty the buffer, for very long arrays
     for (int i = 0; i < e.nRow_; i++) {
-        if (e.rowIndex_[i] == e.rowIndex_[i + 1])
-            i = e.searchFirstGreater(i, e.nRow_, e.rowIndex_[i], e.rowIndex_, compareInt) - 1;
+        if (e.rowIndex_[i] != e.rowIndex_[i + 1])
+            //i = e.searchFirstGreater(i, e.nRow_, e.rowIndex_[i], e.rowIndex_, compareInt) - 1;
         a << "[ " << i << " : " << e.rowIndex_[i] << " ] ";
     }
     a << " [Num Elems:" << e.rowIndex_[e.nRow_] << "] )\n" << std::flush;
@@ -309,15 +302,6 @@ MatriuSparse &MatriuSparse::operator=(const MatriuSparse &e) {
 }
 
 
-void MatriuSparse::setRow(const int &e) {
-    if (e > nRow_ || e < 0) throw "Accio no permesa, utilitzi init per agrandar la matriu";
-    nRow_ = e;
-}
-
-void MatriuSparse::setCol(const int &e) {
-    if (e > nCol_ || e < 0) throw "Accio no permesa, utilitzi init per agrandar la matriu";
-    nCol_ = e;
-}
 
 void MatriuSparse::setRowCol(const int &a, const int &e) {
     if (e > nCol_ || e < 0 || a>nRow_ || a < 0) throw "Accio no permesa, utilitzi init per agrandar la matriu";

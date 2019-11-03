@@ -18,16 +18,12 @@ public:
     void init(const int &row, const int &col);
     friend std::ostream &operator<<(std::ostream &a, const MatriuSparse &e);
     friend std::ofstream &operator<<(std::ofstream &a, const MatriuSparse &e);
-    MatriuSparse operator+(const MatriuSparse &e);
-    MatriuSparse operator-(const MatriuSparse &e);
-    MatriuSparse operator*(const MatriuSparse &e);
+    //MatriuSparse operator*(const MatriuSparse &e);
     MatriuSparse operator*(const float &e);
     std::vector<float> operator*(const std::vector<float> &e);
     MatriuSparse operator/(const float &e);
     MatriuSparse &operator=(const MatriuSparse &e);
 
-    void setRow(const int &e);
-    void setCol(const int &e);
     void setRowCol(const int &e, const int &a);
     inline int getNFiles()const { return nCol_ > nRow_ ? nCol_ : nRow_; } // square matrix, return the biggets number
     inline int getNColumnes()const { return nCol_ > nRow_ ? nCol_ : nRow_; }
@@ -46,6 +42,5 @@ private:
     std::vector<int> rowIndex_;
     std::vector<std::pair<int, float>> columnValors_;
     int nRow_, nCol_;
-
 
 };
