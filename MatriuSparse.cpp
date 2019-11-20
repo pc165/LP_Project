@@ -97,26 +97,9 @@ void MatriuSparse::init(const int &row, const int &col) {
 }
 
 
-//MatriuSparse MatriuSparse::operator*(const MatriuSparse &e) { // this function is not needed
-//    if (this->nCol_ != e.nRow_) throw "Producte invalid, el numero de files no es igual al de columnes";
-//    MatriuSparse res(this->nRow_, e.nCol_);
-//    float suma = 0;
-//    int index = -1;
-//    for (int i = 0; i < this->nRow_; i++) {
-//        for (int j = 0; j < e.nCol_; j++) {
-//            for (int z = 0; z < nCol_; z++) {
-//                suma += getVal(i, z) * e.getVal(z, j);
-//            }
-//            res.setVal(i, j, suma);
-//            suma = 0;
-//        }
-//    }
-//    return res;
-//}
-
 MatriuSparse MatriuSparse::operator*(const float &e) {
     MatriuSparse res(*this);
-    if (cmpFloat(e, 0)) { // delete matrix when we multiply by 0
+    if (cmpFloat(e, 0)) {
         init(0, 0);
     } else {
         for (auto &i : res.columnValors_)
@@ -130,13 +113,10 @@ std::vector<float> MatriuSparse::operator*(const std::vector<float> &e) {
 
     std::vector<float> result(nRow_, 0);
 
-    for (int i = 0; i < nRow_; i++) {
+    for (int i = 0; i < nRow_; i++)
         if (rowIndex_[i] != rowIndex_[i + 1])
-            //i = searchFirstGreater(i, nRow_, rowIndex_[i], rowIndex_, compareInt) - 1;
-        for (int k = rowIndex_[i]; k < rowIndex_[i + 1]; k++)
-            result[i] += columnValors_[k].second * e[columnValors_[k].first];
-
-    }
+            for (int k = rowIndex_[i]; k < rowIndex_[i + 1]; k++)
+                result[i] += columnValors_[k].second * e[columnValors_[k].first];
     return result;
 }
 
@@ -184,14 +164,6 @@ void MatriuSparse::insertValue(const int &row, const int &col, const int &value)
 
 void MatriuSparse::removeValue(const int &row, const int &col) {
     int i = binarySearch(row, col);
-        /*
-        0 0 0 0 1        0 0 0 0 1           0 0 0             0 0
-        0 1 0 0 0        0 1 0 0 0           0 1 0             0 1
-        setVal(1,1,0)    setVal(0,4,0)       0 0 1             setVal(1,1,0)
-        0 0 0 0 1        0 0                 setVal(2,2,0)     delete matrix
-                         0 1                 0 0
-                                             0 1
-        */
     if (i >= 0) {
         columnValors_.erase(columnValors_.begin() + i);
         if (row + 1 != nRow_) {
@@ -228,7 +200,7 @@ void MatriuSparse::setVal(const int &row, const int &col, const float &value) {
         if (row < nRow_ && col < nCol_)
             removeValue(row, col);
     } else {
-        insertValue(row,col,value);
+        insertValue(row, col, value);
     }
 }
 
@@ -236,13 +208,11 @@ template<typename T>
 T &format(T &a, const MatriuSparse &e) {
     a << "MATRIU DE FILES: " << e.getNFiles() << " : COLUMNES: " << e.getNColumnes() << "\n";
     for (int i = 0; i < e.nRow_; i++) {
-        if (e.rowIndex_[i] != e.rowIndex_[i + 1]){
-            //i = e.searchFirstGreater(i, e.nRow_ - 1, e.rowIndex_[i], e.rowIndex_, compareInt) - 1;
-
-        a << "VALORS FILA:" << i << "(COL:VALOR)\n";
-        for (int j = e.rowIndex_[i]; j < e.rowIndex_[i + 1]; j++)
-            a << "(" << e.columnValors_[j].first << " : " << e.columnValors_[j].second << ") ";
-        a << "\n";
+        if (e.rowIndex_[i] != e.rowIndex_[i + 1]) {
+            a << "VALORS FILA:" << i << "(COL:VALOR)\n";
+            for (int j = e.rowIndex_[i]; j < e.rowIndex_[i + 1]; j++)
+                a << "(" << e.columnValors_[j].first << " : " << e.columnValors_[j].second << ") ";
+            a << "\n";
         }
     }
     a << "MATRIUS\nVALORS\n(";
@@ -251,11 +221,10 @@ T &format(T &a, const MatriuSparse &e) {
     a << ")\nCOLS\n(";
     for (auto &i : e.columnValors_)
         a << i.first << "  ";
-    a << ")\nINIFILA\n(" << std::flush; // write to disk and empty the buffer, for very long arrays
+    a << ")\nINIFILA\n(" << std::flush;
     for (int i = 0; i < e.nRow_; i++) {
         if (e.rowIndex_[i] != e.rowIndex_[i + 1])
-            //i = e.searchFirstGreater(i, e.nRow_, e.rowIndex_[i], e.rowIndex_, compareInt) - 1;
-        a << "[ " << i << " : " << e.rowIndex_[i] << " ] ";
+            a << "[ " << i << " : " << e.rowIndex_[i] << " ] ";
     }
     a << " [Num Elems:" << e.rowIndex_[e.nRow_] << "] )\n" << std::flush;
     return a;
