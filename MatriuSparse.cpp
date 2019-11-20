@@ -116,10 +116,10 @@ void MatriuSparse::init(const int &row, const int &col) {
 
 MatriuSparse MatriuSparse::operator*(const float &e) {
     MatriuSparse res(*this);
-    if (cmpFloat(e, 0)) { // delete matriz when we multiply by 0
+    if (cmpFloat(e, 0)) { // delete matrix when we multiply by 0
         init(0, 0);
     } else {
-        for (auto &i : res.columnValors_) // the same as: for (vector<pair<int,float>>::iterator it = res.columnValors_.begin(); it != res.columnValors_.end(); it++)
+        for (auto &i : res.columnValors_)
             i.second *= e;
     }
     return res;
