@@ -1,6 +1,6 @@
 #include "Comunitat.h"
 
-Comunitat::Comunitat(MatriuSparse *pMAdj):pMAdj_(pMAdj) {}
+Comunitat::Comunitat(MatriuSparse *pMAdj) : pMAdj_(pMAdj) {}
 
 Comunitat::~Comunitat() {
     if (pMAdj_ != nullptr)

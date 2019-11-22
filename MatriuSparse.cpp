@@ -1,29 +1,29 @@
 #include "MatriuSparse.h"
-#include <vector>
-#include <iostream>
 #include <fstream>
-#include <string>
+#include <iostream>
 #include <math.h>
+#include <string>
+#include <vector>
 #define FLT_EPSILON 1.192092896e-07F // smallest such that 1.0+FLT_EPSILON != 1.0, this is needed to compare floats.
 
-MatriuSparse::MatriuSparse(const std::string &e):nRow_(0), nCol_(0) {
+MatriuSparse::MatriuSparse(const std::string &e) : nRow_(0), nCol_(0) {
     std::fstream f(e);
     if (f.is_open()) {
         int count = 0;
         std::string line, lastLine;
         while (std::getline(f, line)) // count the number of non-empty (more than one character) lines from the file
-            if (line.size() > 1) { // if there are more than one character
-                lastLine = line; // save last non-empty line
+            if (line.size() > 1) {    // if there are more than one character
+                lastLine = line;      // save last non-empty line
                 count++;
             }
-        lastLine = lastLine.substr(0, lastLine.find('\t')); // find X coordinate, the data is sperarated by a tab (\t)
-        columnValors_.resize(count, std::pair<int, float>(0, 1)); // resize to the number of 
+        lastLine = lastLine.substr(0, lastLine.find('\t'));       // find X coordinate, the data is sperarated by a tab (\t)
+        columnValors_.resize(count, std::pair<int, float>(0, 1)); // resize to the number of
 
         nRow_ = std::stoi(lastLine) + 1; // stoi = String TO Integer, add 1 because the file starts to count from 0.
-        rowIndex_.resize(nRow_ + 1); // we need an extra space to store the number of values in the matrix
-        rowIndex_.back() = count; // rowIndex_.back() == columnValors_.size()
+        rowIndex_.resize(nRow_ + 1);     // we need an extra space to store the number of values in the matrix
+        rowIndex_.back() = count;        // rowIndex_.back() == columnValors_.size()
 
-        f.clear(); // clear flags (end flag)
+        f.clear();         // clear flags (end flag)
         f.seekg(0, f.beg); // return to the beginning of the file
         int newX = 0, oldX = 0, y = 0, countIndex = 0;
         count = 0;
@@ -45,7 +45,7 @@ MatriuSparse::MatriuSparse(const std::string &e):nRow_(0), nCol_(0) {
 }
 
 inline bool cmpFloat(const float &e, const float &a) { // we need this function to compare floats, fabs = float aboslute value
-    return(fabs(e - a) < FLT_EPSILON);
+    return (fabs(e - a) < FLT_EPSILON);
 }
 
 bool compareInt(const int &a, const int &b) {
@@ -69,7 +69,6 @@ MatriuSparse::MatriuSparse(const MatriuSparse &e) {
 }
 
 MatriuSparse::~MatriuSparse() {
-
 }
 
 void MatriuSparse::copy(const MatriuSparse &e) {
@@ -88,14 +87,13 @@ int MatriuSparse::numberOfValuesInColumn(const int &col) {
     return sum;
 }
 
-
 void MatriuSparse::init(const int &row, const int &col) {
-    if (row < 0 || col < 0) throw "Error: Les columnes i files han de ser positius\n";
+    if (row < 0 || col < 0)
+        throw "Error: Les columnes i files han de ser positius\n";
     nRow_ = row;
     nCol_ = col;
     rowIndex_.resize(nRow_ + 1);
 }
-
 
 MatriuSparse MatriuSparse::operator*(const float &e) {
     MatriuSparse res(*this);
@@ -109,7 +107,8 @@ MatriuSparse MatriuSparse::operator*(const float &e) {
 }
 
 std::vector<float> MatriuSparse::operator*(const std::vector<float> &e) {
-    if (this->getNColumnes() != e.size()) throw "Producte invalid, el numero de files no es igual al de columnes";
+    if (this->getNColumnes() != e.size())
+        throw "Producte invalid, el numero de files no es igual al de columnes";
 
     std::vector<float> result(nRow_, 0);
 
@@ -121,7 +120,8 @@ std::vector<float> MatriuSparse::operator*(const std::vector<float> &e) {
 }
 
 MatriuSparse MatriuSparse::operator/(const float &e) {
-    if (cmpFloat(e, 0.0f)) throw "No es pot dividir per zero";
+    if (cmpFloat(e, 0.0f))
+        throw "No es pot dividir per zero";
 
     MatriuSparse res(*this);
     for (auto &i : res.columnValors_)
@@ -135,7 +135,6 @@ void MatriuSparse::calculaGrau(std::vector<int> &graus) const {
     for (int i = 0; i < rowIndex_.size(); i++)
         graus[i] = rowIndex_[i + 1] - rowIndex_[i];
 }
-
 
 void MatriuSparse::insertValue(const int &row, const int &col, const int &value) {
     if (!(row < nRow_ && col < nCol_)) {
@@ -168,7 +167,6 @@ void MatriuSparse::insertValue(const int &row, const int &col, const int &value)
     columnValors_.insert(columnValors_.begin() + low, std::make_pair(col, value));
 }
 
-
 void MatriuSparse::removeValue(const int &row, const int &col) {
     int i = binarySearch(row, col);
     if (i >= 0) {
@@ -199,9 +197,9 @@ void MatriuSparse::removeValue(const int &row, const int &col) {
     return;
 }
 
-
 void MatriuSparse::setVal(const int &row, const int &col, const float &value) {
-    if (row < 0 || col < 0) throw "Error: Els indexs son negatius";
+    if (row < 0 || col < 0)
+        throw "Error: Els indexs son negatius";
 
     if (cmpFloat(value, 0.0f)) {
         if (row < nRow_ && col < nCol_)
@@ -211,7 +209,7 @@ void MatriuSparse::setVal(const int &row, const int &col, const float &value) {
     }
 }
 
-template<typename T>
+template <typename T>
 T &MatriuSparse::format(T &a, const MatriuSparse &e) const {
     a << "MATRIU DE FILES: " << e.getNFiles() << " : COLUMNES: " << e.getNColumnes() << "\n";
     for (int i = 0; i < e.nRow_; i++) {
@@ -233,7 +231,8 @@ T &MatriuSparse::format(T &a, const MatriuSparse &e) const {
         if (e.rowIndex_[i] != e.rowIndex_[i + 1])
             a << "[ " << i << " : " << e.rowIndex_[i] << " ] ";
     }
-    a << " [Num Elems:" << e.rowIndex_[e.nRow_] << "] )\n" << std::flush;
+    a << " [Num Elems:" << e.rowIndex_[e.nRow_] << "] )\n"
+      << std::flush;
     return a;
 }
 
@@ -254,16 +253,18 @@ std::ofstream &operator<<(std::ofstream &a, const MatriuSparse &e) {
     return e.format<std::ofstream>(a, e);
 }
 bool MatriuSparse::getVal(const int &row, const int &col, float &value) const {
-    if (row < 0 || col < 0) throw "Error: Els indexs son negatius";
+    if (row < 0 || col < 0)
+        throw "Error: Els indexs son negatius";
     value = 0.0f;
     int i = binarySearch(row, col);
     if (i != -1)
         value = columnValors_[i].second;
-    return  (row < getNFiles() && col < getNColumnes());
+    return (row < getNFiles() && col < getNColumnes());
 }
 
 float MatriuSparse::getVal(const int &row, const int &col) const {
-    if (row < 0 || col < 0 || !((row < nRow_ && col < nCol_))) throw "Error: Seleccio invalida";
+    if (row < 0 || col < 0 || !((row < nRow_ && col < nCol_)))
+        throw "Error: Seleccio invalida";
     int i = binarySearch(row, col);
     if (i != -1)
         return columnValors_[i].second;
@@ -271,16 +272,14 @@ float MatriuSparse::getVal(const int &row, const int &col) const {
         return 0;
 }
 
-
 MatriuSparse &MatriuSparse::operator=(const MatriuSparse &e) {
     this->copy(e);
     return *this;
 }
 
-
-
 void MatriuSparse::setRowCol(const int &a, const int &e) {
-    if (e > nCol_ || e < 0 || a>nRow_ || a < 0) throw "Accio no permesa, utilitzi init per agrandar la matriu";
+    if (e > nCol_ || e < 0 || a > nRow_ || a < 0)
+        throw "Accio no permesa, utilitzi init per agrandar la matriu";
     nRow_ = a;
     nCol_ = e;
 }
@@ -302,7 +301,7 @@ int MatriuSparse::binarySearch(const int &row, const int &col) const {
     return -1;
 }
 
-template<typename T, typename CMP>
+template <typename T, typename CMP>
 int MatriuSparse::searchFirstGreater(const int &min, const int &max, const int &val, T vector, CMP cmp) const {
     int low = min, high = max, mid = 0;
     while (low < high) {
@@ -314,4 +313,3 @@ int MatriuSparse::searchFirstGreater(const int &min, const int &max, const int &
     }
     return low;
 }
-

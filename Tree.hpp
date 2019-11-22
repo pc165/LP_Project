@@ -4,9 +4,9 @@
 #include <sstream>
 #include <string>
 
-
-template <class T> class Tree {
-public:
+template <class T>
+class Tree {
+  public:
     Tree();
     Tree(const Tree<T> &t);
     Tree(std::string nomFitxer);
@@ -25,7 +25,7 @@ public:
         return out;
     }
 
-private:
+  private:
     Tree<T> *m_left;
     Tree<T> *m_right;
     Tree<T> *m_father;
@@ -37,14 +37,16 @@ private:
     void setRight(Tree<T> *tR);
 };
 
-template <class T> Tree<T>::Tree() { // Inicialitzem tota l'estructura
+template <class T>
+Tree<T>::Tree() { // Inicialitzem tota l'estructura
     m_left = NULL;
     m_right = NULL;
     m_father = NULL;
     m_data = NULL;
 }
 
-template <class T> Tree<T>::Tree(const Tree<T> &t) {
+template <class T>
+Tree<T>::Tree(const Tree<T> &t) {
     if (t.m_left != NULL) {
         m_left = new (Tree<T>);
         m_left = t.m_left;
@@ -81,7 +83,8 @@ template <class T> Tree<T>::Tree(const Tree<T> &t) {
 // estat: 0 o 1 segons sigui buit o amb informacio al costat dada           //
 // Esta en preordre Preordre(FillEsq) Arrel Preordre(FillDret)                //
 /////////////////////////////////////////////////////////////////////////////
-template <class T> Tree<T>::Tree(std::string nomFitxer) {
+template <class T>
+Tree<T>::Tree(std::string nomFitxer) {
     std::ifstream fitxerNodes;
 
     fitxerNodes.open(nomFitxer.c_str());
@@ -129,7 +132,8 @@ void Tree<T>::TreeRec(std::ifstream &fitxerNodes, int h, Tree<T> *father) {
     }
 }
 
-template <class T> Tree<T>::~Tree() {
+template <class T>
+Tree<T>::~Tree() {
     if (m_right != NULL) {
         delete m_right;
     }
@@ -147,22 +151,24 @@ template <class T> Tree<T>::~Tree() {
 
 // Suposem l'arbre ordenat amb valors menors a arrel a esquerra i valors majors
 // a dreta
-template <class T> bool Tree<T>::cerca(const T &val, Tree<T> *valTrobat) {
+template <class T>
+bool Tree<T>::cerca(const T &val, Tree<T> *valTrobat) {
     bool trobat = false;
     // Implementa
     return trobat;
 }
 
-template <class T> void Tree<T>::mostraExpressio() {
+template <class T>
+void Tree<T>::mostraExpressio() {
     // Implementa
     Tree<T> *left = m_left;
     while (left != nullptr) {
         left = left->m_left;
     }
-
 }
 
-template <class T> bool TryParse(std::string input, T &var) {
+template <class T>
+bool TryParse(std::string input, T &var) {
     static const std::string ws(" \t\f\v\n\r");
     size_t pos = input.find_last_not_of(ws);
     if (pos != std::string::npos)
@@ -173,7 +179,8 @@ template <class T> bool TryParse(std::string input, T &var) {
     return buffer >> var && buffer.eof();
 }
 
-template <class T> float Tree<T>::avalua() {
+template <class T>
+float Tree<T>::avalua() {
     float resultat = 0;
     // Implementa
     return resultat;
@@ -226,15 +233,14 @@ std::ostream &Tree<T>::coutArbreRec(int n, std::ostream &out) const {
     return out;
 }
 
-
-template<class T>
+template <class T>
 void Tree<T>::setLeft(Tree<T> *tL) {
     m_left = tL;
     if (m_left != NULL) { //Fem que this sigui el pare de left
         m_left->m_father = this;
     }
 }
-template<class T>
+template <class T>
 void Tree<T>::setRight(Tree<T> *tR) {
     m_right = tR;
     if (m_right != NULL) { //Fem que this sigui el pare de right

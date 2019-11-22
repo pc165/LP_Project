@@ -1,12 +1,12 @@
 #pragma once
+#include "Heap.h"
+#include "MatriuSparse.h"
+#include "Tree.hpp"
 #include <list>
 #include <map>
 #include <vector>
-#include "MatriuSparse.h"
-#include "Tree.hpp"
-#include "Heap.h"
 class Comunitat {
-public:
+  public:
     Comunitat(MatriuSparse *pMAdj);
     ~Comunitat();
     void calculaM2() { m2_ = pMAdj_->getNValues(); }
@@ -25,7 +25,8 @@ public:
     Heap gethTotal() { return hTotal_; }
     std::vector<std::pair<int, int>> getIndexComs() { return indexComs_; }
     void clear();
-private:
+
+  private:
     //vector de maps per cada fila de deltaQij
     std::vector<std::map<std::pair<int, int>, double>> deltaQ_;
     //vector mante llista de comunitats actives amb un parell que indica anterior i seguent activa.
