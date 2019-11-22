@@ -130,6 +130,13 @@ MatriuSparse MatriuSparse::operator/(const float &e) {
     return res;
 }
 
+void MatriuSparse::calculaGrau(std::vector<int> &graus) const {
+    graus.resize(rowIndex_.size());
+    for (int i = 0; i < rowIndex_.size(); i++)
+        graus[i] = rowIndex_[i + 1] - rowIndex_[i];
+}
+
+
 void MatriuSparse::insertValue(const int &row, const int &col, const int &value) {
     if (!(row < nRow_ && col < nCol_)) {
         if (col >= nCol_)
@@ -205,7 +212,7 @@ void MatriuSparse::setVal(const int &row, const int &col, const float &value) {
 }
 
 template<typename T>
-T &format(T &a, const MatriuSparse &e) {
+T &MatriuSparse::format(T &a, const MatriuSparse &e) const {
     a << "MATRIU DE FILES: " << e.getNFiles() << " : COLUMNES: " << e.getNColumnes() << "\n";
     for (int i = 0; i < e.nRow_; i++) {
         if (e.rowIndex_[i] != e.rowIndex_[i + 1]) {
@@ -240,11 +247,11 @@ std::ostream &operator<<(std::ostream &a, const MatriuSparse &e) {
     //    a << "\n";
     //}
     //return a;
-    return format<std::ostream>(a, e);
+    return e.format<std::ostream>(a, e);
 }
 
 std::ofstream &operator<<(std::ofstream &a, const MatriuSparse &e) {
-    return format<std::ofstream>(a, e);
+    return e.format<std::ofstream>(a, e);
 }
 bool MatriuSparse::getVal(const int &row, const int &col, float &value) const {
     if (row < 0 || col < 0) throw "Error: Els indexs son negatius";

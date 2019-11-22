@@ -18,6 +18,8 @@ public:
     void init(const int &row, const int &col);
     friend std::ostream &operator<<(std::ostream &a, const MatriuSparse &e);
     friend std::ofstream &operator<<(std::ofstream &a, const MatriuSparse &e);
+    template<typename T>
+    T &format(T &a, const MatriuSparse &e)const;
     //MatriuSparse operator*(const MatriuSparse &e);
     MatriuSparse operator*(const float &e);
     std::vector<float> operator*(const std::vector<float> &e);
@@ -28,15 +30,13 @@ public:
     inline int getNFiles()const { return nCol_ > nRow_ ? nCol_ : nRow_; } // square matrix, return the biggets number
     inline int getNColumnes()const { return nCol_ > nRow_ ? nCol_ : nRow_; }
 
-    int getNValues()const;
+    int getNValues()const { return columnValors_.size(); };
     void calculaGrau(std::vector<int> &)const;
     void calculaDendograms(std::vector<Tree<double> *> &)const;
-    void clear();
+    void clear() { init(0, 0); };
 private:
     void insertValue(const int &row, const int &col, const int &value);
     void removeValue(const int &row, const int &col);
-    template<typename T>
-    friend T &format(T &a, const MatriuSparse &e);
     void copy(const MatriuSparse &e);
     int numberOfValuesInColumn(const int &col);
     int binarySearch(const int &row, const int &col) const;
