@@ -11,11 +11,11 @@ class Tree {
     Tree(const Tree<T> &t);
     Tree(std::string nomFitxer);
     ~Tree();
-    bool isLeave() const { return ((m_left == NULL) && (m_right == NULL)); }
-    bool isEmpty() const { return (m_data == NULL); }
-    Tree<T> *getRight() { return m_right; }
-    Tree<T> *getLeft() { return m_left; }
-    T &getData() { return (*m_data); }
+    bool isLeave() const { return ((left_ == NULL) && (right_ == NULL)); }
+    bool isEmpty() const { return (data_ == NULL); }
+    Tree<T> *getRight() { return right_; }
+    Tree<T> *getLeft() { return left_; }
+    T &getData() { return (*data_); }
     float avalua();
     void mostraExpressio();
     bool cerca(const T &val, Tree<T> *valTrobat);
@@ -26,10 +26,10 @@ class Tree {
     }
 
   private:
-    Tree<T> *m_left;
-    Tree<T> *m_right;
-    Tree<T> *m_father;
-    T *m_data;
+    Tree<T> *left_;
+    Tree<T> *right_;
+    Tree<T> *father_;
+    T *data_;
 
     void TreeRec(std::ifstream &fitxerNodes, int h, Tree<T> *father);
     std::ostream &coutArbreRec(int n, std::ostream &out) const;
@@ -39,37 +39,37 @@ class Tree {
 
 template <class T>
 Tree<T>::Tree() { // Inicialitzem tota l'estructura
-    m_left = NULL;
-    m_right = NULL;
-    m_father = NULL;
-    m_data = NULL;
+    left_ = NULL;
+    right_ = NULL;
+    father_ = NULL;
+    data_ = NULL;
 }
 
 template <class T>
 Tree<T>::Tree(const Tree<T> &t) {
-    if (t.m_left != NULL) {
-        m_left = new (Tree<T>);
-        m_left = t.m_left;
+    if (t.left_ != NULL) {
+        left_ = new (Tree<T>);
+        left_ = t.left_;
     } else {
-        m_left = NULL;
+        left_ = NULL;
     }
 
-    if (t.m_right != NULL) {
-        m_right = new (Tree<T>);
-        m_right = t.m_right;
+    if (t.right_ != NULL) {
+        right_ = new (Tree<T>);
+        right_ = t.right_;
     } else {
-        m_right = NULL;
+        right_ = NULL;
     }
     // m_father: here m_father must be NULL
     // we are creating a tree, if it has to be connected with another one you
     // will use setRight o r left.
-    m_father = NULL;
+    father_ = NULL;
 
-    if (t.m_data != NULL) {
-        m_data = new (T);
-        m_data = t.m_data;
+    if (t.data_ != NULL) {
+        data_ = new (T);
+        data_ = t.data_;
     } else {
-        m_data = NULL;
+        data_ = NULL;
     }
 }
 
@@ -106,17 +106,17 @@ Tree<T>::Tree(std::string nomFitxer) {
 
 template <class T>
 void Tree<T>::TreeRec(std::ifstream &fitxerNodes, int h, Tree<T> *father) {
-    m_father = father;
-    m_data = new (T);
-    fitxerNodes >> (*m_data);
+    father_ = father;
+    data_ = new (T);
+    fitxerNodes >> (*data_);
     if (h > 0) {
         int estat;
         if (!fitxerNodes.eof()) {
             fitxerNodes >> estat;
             if (!fitxerNodes.eof()) {
                 if (estat == 1) {
-                    m_left = new (Tree<T>);
-                    m_left->TreeRec(fitxerNodes, h - 1, this);
+                    left_ = new (Tree<T>);
+                    left_->TreeRec(fitxerNodes, h - 1, this);
                 }
             }
         }
@@ -124,8 +124,8 @@ void Tree<T>::TreeRec(std::ifstream &fitxerNodes, int h, Tree<T> *father) {
             fitxerNodes >> estat;
             if (!fitxerNodes.eof()) {
                 if (estat == 1) {
-                    m_right = new (Tree<T>);
-                    m_right->TreeRec(fitxerNodes, h - 1, this);
+                    right_ = new (Tree<T>);
+                    right_->TreeRec(fitxerNodes, h - 1, this);
                 }
             }
         }
@@ -134,19 +134,19 @@ void Tree<T>::TreeRec(std::ifstream &fitxerNodes, int h, Tree<T> *father) {
 
 template <class T>
 Tree<T>::~Tree() {
-    if (m_right != NULL) {
-        delete m_right;
+    if (right_ != NULL) {
+        delete right_;
     }
 
-    if (m_left != NULL) {
-        delete m_left;
+    if (left_ != NULL) {
+        delete left_;
     }
 
-    if (m_data != NULL) {
-        delete m_data;
+    if (data_ != NULL) {
+        delete data_;
     }
 
-    m_father = NULL;
+    father_ = NULL;
 }
 
 // Suposem l'arbre ordenat amb valors menors a arrel a esquerra i valors majors
@@ -161,9 +161,9 @@ bool Tree<T>::cerca(const T &val, Tree<T> *valTrobat) {
 template <class T>
 void Tree<T>::mostraExpressio() {
     // Implementa
-    Tree<T> *left = m_left;
+    Tree<T> *left = left_;
     while (left != nullptr) {
-        left = left->m_left;
+        left = left->left_;
     }
 }
 
@@ -210,18 +210,18 @@ std::ostream &Tree<T>::coutArbreRec(int n, std::ostream &out) const {
         for (int i = 0; i < n; i++) {
             out << "|--";
         }
-        out << "|-->" << (*m_data) << '\n';
+        out << "|-->" << (*data_) << '\n';
         if (!isLeave()) {
-            if (m_left != NULL) {
-                m_left->coutArbreRec(n + 1, out);
+            if (left_ != NULL) {
+                left_->coutArbreRec(n + 1, out);
             } else {
                 for (int i = 0; i < n + 1; i++) {
                     out << "|--";
                 }
                 out << "|-->BUIT" << '\n';
             }
-            if (m_right != NULL) {
-                m_right->coutArbreRec(n + 1, out);
+            if (right_ != NULL) {
+                right_->coutArbreRec(n + 1, out);
             } else {
                 for (int i = 0; i < n + 1; i++) {
                     out << "|--";
@@ -235,15 +235,15 @@ std::ostream &Tree<T>::coutArbreRec(int n, std::ostream &out) const {
 
 template <class T>
 void Tree<T>::setLeft(Tree<T> *tL) {
-    m_left = tL;
-    if (m_left != NULL) { //Fem que this sigui el pare de left
-        m_left->m_father = this;
+    left_ = tL;
+    if (left_ != NULL) { //Fem que this sigui el pare de left
+        left_->father_ = this;
     }
 }
 template <class T>
 void Tree<T>::setRight(Tree<T> *tR) {
-    m_right = tR;
-    if (m_right != NULL) { //Fem que this sigui el pare de right
-        m_right->m_father = this;
+    right_ = tR;
+    if (right_ != NULL) { //Fem que this sigui el pare de right
+        right_->father_ = this;
     }
 }
