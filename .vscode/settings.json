@@ -8,6 +8,8 @@
         "plaintext"
     ],
     "files.associations": {
-        "ostream": "cpp"
-    }
+        "ostream": "cpp",
+        "list": "cpp"
+    },
+    "sqltools.useNodeRuntime": true
 }

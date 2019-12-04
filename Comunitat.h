@@ -1,53 +1,52 @@
 #pragma once
 #include "Heap.h"
 #include "MatriuSparse.h"
-#include "Tree.hpp"
 #include <list>
 #include <map>
-#include <vector>
+
 class Comunitat {
   public:
     Comunitat(MatriuSparse *pMAdj);
     ~Comunitat();
-    void calculaM2() { m2_ = pMAdj_->getNValues(); }
-    void calculaK() { pMAdj_->calculaGrau(k_); };
+    void calculaM2() { m_M2 = m_pMAdj->getNValues(); }
+    void calculaK() { m_pMAdj->calculaGrau(m_k); };
     void calculaA();
     void creaDeltaQHeap();
     void creaIndexComs();
-    void InicialitzaDendrograms() { pMAdj_->calculaDendograms(vDendrograms_); }
-    void calculaComunitats(std::list<Tree<double> *> &listDendrogram);
+    void InicialitzaDendrograms() { m_pMAdj->calculaDendograms(m_vDendrograms); }
+    void calculaComunitats(list<Tree<double> *> &listDendrogram);
     void fusiona(int com1, int com2);
+    void generaDendrogram(int pos1, int pos2, double deltaQp1p2);
     void modificaVei(int com1, int com2, int vei, int cas);
-    int getM2() { return m2_; }
-    std::vector<int> getK() { return k_; }
-    std::vector<double> getA() { return A_; }
-    std::vector<std::map<std::pair<int, int>, double>> getdeltaQ() { return deltaQ_; }
-    Heap gethTotal() { return hTotal_; }
-    std::vector<std::pair<int, int>> getIndexComs() { return indexComs_; }
+    int getM2() { return m_M2; }
+    vector<int> getK() { return m_k; }
+    vector<double> getA() { return m_A; }
+    vector<map<pair<int, int>, double>> getdeltaQ() { return m_deltaQ; }
+    Heap gethTotal() { return m_hTotal; }
+    vector<pair<int, int>> getIndexComs() { return m_indexComs; }
     void clear();
 
   private:
     //vector de maps per cada fila de deltaQij
-    std::vector<std::map<std::pair<int, int>, double>> deltaQ_;
-    //vector mante llista de comunitats actives amb un parell que indica anterior i seguent activa.
+    vector<map<pair<int, int>, double>> m_deltaQ;
+    //vector que mante llista de comunitats actives amb un parell que indica anterior i seguent activa.
     //la primera te com anterior -1 i la ultima com a seguent la mida del vector
-    std::vector<std::pair<int, int>> indexComs_;
+    vector<pair<int, int>> m_indexComs;
     //vector que mante el maxim de deltaQij d'una fila, per no recalcular innecesariament
-    std::vector<std::pair<int, double>> maxDeltaQFil_;
+    vector<pair<int, double>> m_maxDeltaQFil;
     //index que indica quina es la primera comunitat activa
-    int primComdeltaQ_;
-    //Vector d'arbres per dendrograma. Inicialment vector amb un arbre per cada node del graf.
-    //Cada node fulla te index del node, cada node intern i l'arrel te el Q en el moment de la unio
-    std::vector<Tree<double> *> vDendrograms_;
+    int m_primComdeltaQ;
+    //Vector d'arbres que va creant el dendograma. Inicialment es un vector amb un arbre per cada node del graf.
+    //Cada node fulla te el index del node, cada node intern i l'arrel te el deltaQij que l'ha fet unir-se. Si es negatiu vol dir que no hauriem de fer aquesta unio
+    vector<Tree<double> *> m_vDendrograms;
     //Vector de graus dels nodes
-    std::vector<int> k_;
-    //Vector index a de cada aresta
-    std::vector<double> A_;
-    //Heap maxims deltaQ per fila. Num elems = comunitats actives (a inici = num nodes graf)
-    Heap hTotal_;
+    vector<int> m_k;
+    //Vector de index aij de cada aresta
+    vector<double> m_A;
+    //Heap dels maxims deltaQ de cada fila, tindra nfiles elements a l'inici i despres tants com comunitats hi hagi actives
+    Heap m_hTotal; // (_mAdjacencia.getNFiles());
     //Modularitat Q de la particio en comunitats calculada
-    double Q_;
-    //Nombre d’arestes *2 del graf
-    int m2_;
-    MatriuSparse *pMAdj_;
+    double m_Q;
+    int m_M2;
+    MatriuSparse *m_pMAdj;
 };

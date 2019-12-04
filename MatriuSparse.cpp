@@ -131,9 +131,10 @@ MatriuSparse MatriuSparse::operator/(const float &e) {
 }
 
 void MatriuSparse::calculaGrau(std::vector<int> &graus) const {
-    graus.resize(rowIndex_.size());
-    for (int i = 0; i < rowIndex_.size(); i++)
-        graus[i] = rowIndex_[i + 1] - rowIndex_[i];
+
+}
+
+void MatriuSparse::calculaDendograms(std::vector<Tree<double> *> &) const {
 }
 
 void MatriuSparse::insertValue(const int &row, const int &col, const int &value) {

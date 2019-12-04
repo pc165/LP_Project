@@ -1,25 +1,19 @@
-#pragma once
+//#include "MatriuSparseCSR.h"
+//#include<algorithm> // for heap operations
 #include "Comunitat.h"
-#include "MatriuSparse.h"
-#include <iostream>
-#include <list>
-#include <string>
 
 class Graph {
   public:
     Graph(){};
-    Graph(std::string nomFitxerRels) : mAdjacencia_(nomFitxerRels){};
+    Graph(string nomFitxerRels) : m_mAdjacencia(nomFitxerRels){};
     ~Graph(){};
     friend std::ostream &operator<<(std::ostream &os, const Graph &g) {
-        os << g.mAdjacencia_;
+        os << g.m_mAdjacencia;
         return os;
     };
-    void calculaComunitats(std::list<Tree<double> *> &listDendrogram) {
-        Comunitat a(&mAdjacencia_);
-        a.calculaComunitats(listDendrogram);
-    };
-    void clear() { mAdjacencia_.clear(); }
+    void calculaComunitats(list<Tree<double> *> &listDendrogram);
+    void clear() { m_mAdjacencia.clear(); }
 
   private:
-    MatriuSparse mAdjacencia_;
+    MatriuSparse m_mAdjacencia;
 };
