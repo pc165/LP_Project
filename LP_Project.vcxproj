@@ -134,6 +134,8 @@
     <ClCompile Include="MatriuSparse.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CaronteTest1.h" />
+    <ClInclude Include="CaronteTest2.h" />
     <ClInclude Include="Comunitat.h" />
     <ClInclude Include="Graph.h" />
     <ClInclude Include="Heap.h" />
