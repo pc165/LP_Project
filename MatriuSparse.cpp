@@ -4,48 +4,54 @@
 #include <math.h>
 #include <string>
 #include <vector>
-#define FLT_EPSILON 1.192092896e-07F // smallest such that 1.0+FLT_EPSILON != 1.0, this is needed to compare floats.
 
+/*
+File constructor: Efficiently constructs the object from a file.
+Parses a file containing points (row column) ordered by row and column. 
+Sets the value of each element to 1.
+*/
 MatriuSparse::MatriuSparse(const std::string &e) : nRow_(0), nCol_(0) {
     std::fstream f(e);
     if (f.is_open()) {
+        //Count how many values there are in the file for preallocating the vectors columnValors_ and rowIndex_
         int count = 0;
         std::string line, lastLine;
-        while (std::getline(f, line)) // count the number of non-empty (more than one character) lines from the file
-            if (line.size() > 1) {    // if there are more than one character
-                lastLine = line;      // save last non-empty line
+        while (std::getline(f, line)) {
+            if (line.size() > 1) {
+                lastLine = line;
                 count++;
             }
-        lastLine = lastLine.substr(0, lastLine.find('\t'));       // find X coordinate, the data is sperarated by a tab (\t)
-        columnValors_.resize(count, std::pair<int, float>(0, 1)); // resize to the number of
+        }
+        columnValors_.resize(count, std::pair<int, float>(0, 1.0));
 
-        nRow_ = std::stoi(lastLine) + 1; // stoi = String TO Integer, add 1 because the file starts to count from 0.
-        rowIndex_.resize(nRow_ + 1);     // we need an extra space to store the number of values in the matrix
-        rowIndex_.back() = count;        // rowIndex_.back() == columnValors_.size()
+        lastLine = lastLine.substr(0, lastLine.find('\t'));
+        nRow_ = std::stoi(lastLine) + 1;
+        rowIndex_.resize(nRow_ + 1);
+        rowIndex_.back() = count;
 
-        f.clear();         // clear flags (end flag)
-        f.seekg(0, f.beg); // return to the beginning of the file
-        int newX = 0, oldX = 0, y = 0, countIndex = 0;
+        f.clear();
+        f.seekg(0, f.beg);
+        int newX = 0, oldX = 0, y = 0;
         count = 0;
         while (!f.eof() && count < columnValors_.size()) {
             f >> newX >> y;
             columnValors_[count].first = y;
-            if (y > nCol_) // set the number of columns to the biggest column
+            if (y > nCol_)
                 nCol_ = y;
-            if (newX != oldX) { // if we changed of row then update the values from oldX to the new X
+            if (newX != oldX) {
                 for (int i = oldX; i < newX; i++)
-                    rowIndex_[i + 1] = count; //rowindex_[i] - rowindex[i+1] = number of elements in the i row
+                    rowIndex_[i + 1] = count;
                 oldX = newX;
             }
             count++;
         }
-        nCol_++; // add one because the file started to count the columns from 0
+        nCol_++;
         f.close();
     }
 }
 
-inline bool cmpFloat(const float &e, const float &a) { // we need this function to compare floats, fabs = float aboslute value
-    return (fabs(e - a) < FLT_EPSILON);
+inline bool cmpFloat(const float &e, const float &a) {
+    return (fabs(e - a) < std::numeric_limits<float>::epsilon());
 }
 
 bool compareInt(const int &a, const int &b) {
@@ -131,12 +137,28 @@ MatriuSparse MatriuSparse::operator/(const float &e) {
 }
 
 void MatriuSparse::calculaGrau(std::vector<int> &graus) const {
-
 }
 
 void MatriuSparse::calculaDendograms(std::vector<Tree<double> *> &) const {
 }
 
+/*
+Private.
+Inserts the value to the given position in the matrix. 
+If the row or column is outisde the matrix, it will create a new row or column filled with zeros,
+effectively making the matrix bigger.
+
+0 0
+0 1
+
+After inserting the value (3,3,1)
+
+0 0 0 0
+0 1 0 0
+0 0 0 0
+0 0 0 1
+
+*/
 void MatriuSparse::insertValue(const int &row, const int &col, const int &value) {
     if (!(row < nRow_ && col < nCol_)) {
         if (col >= nCol_)
@@ -155,19 +177,34 @@ void MatriuSparse::insertValue(const int &row, const int &col, const int &value)
                 rowIndex_[i]++;
         }
     } else {
-        int z = binarySearch(row, col); // if we found the value, we just need to change the value in the array
+        int z = binarySearch(row, col);
         if (z >= 0) {
             columnValors_[z].second = value;
             return;
-        } else // make space for the new value
+        } else
             for (int i = row + 1; i < rowIndex_.size(); i++)
                 rowIndex_[i]++;
     }
-    //insert value
-    int low = searchFirstGreater(rowIndex_[row], rowIndex_[row + 1] - 1, col, columnValors_, comparePair);
-    columnValors_.insert(columnValors_.begin() + low, std::make_pair(col, value));
+    int i = searchFirstGreater(rowIndex_[row], rowIndex_[row + 1] - 1, col, columnValors_, comparePair);
+    columnValors_.insert(columnValors_.begin() + i, std::make_pair(col, value));
 }
 
+/*
+Private.
+Removes the selected value from the matrix. 
+If the removed value was the last, the rows and/or columns are removed from the matrix.
+
+0 0 0 0
+0 1 0 0
+0 0 0 0
+0 0 0 1
+
+After removing the value (3,3)
+
+0 0
+0 1
+
+*/
 void MatriuSparse::removeValue(const int &row, const int &col) {
     int i = binarySearch(row, col);
     if (i >= 0) {
@@ -198,13 +235,17 @@ void MatriuSparse::removeValue(const int &row, const int &col) {
     return;
 }
 
+/*
+Public wrapper for inserting or removing values.
+*/
 void MatriuSparse::setVal(const int &row, const int &col, const float &value) {
     if (row < 0 || col < 0)
         throw "Error: Els indexs son negatius";
 
     if (cmpFloat(value, 0.0f)) {
-        if (row < nRow_ && col < nCol_)
-            removeValue(row, col);
+        if (!(row < nRow_ && col < nCol_))
+            throw "No es pot eliminar un valor fora de la matriu";
+        removeValue(row, col);
     } else {
         insertValue(row, col, value);
     }
@@ -253,6 +294,10 @@ std::ostream &operator<<(std::ostream &a, const MatriuSparse &e) {
 std::ofstream &operator<<(std::ofstream &a, const MatriuSparse &e) {
     return e.format<std::ofstream>(a, e);
 }
+
+/*
+Returns 1 if the row and column is inside the matrix and the value of the given row and column.
+*/
 bool MatriuSparse::getVal(const int &row, const int &col, float &value) const {
     if (row < 0 || col < 0)
         throw "Error: Els indexs son negatius";
@@ -263,6 +308,10 @@ bool MatriuSparse::getVal(const int &row, const int &col, float &value) const {
     return (row < getNFiles() && col < getNColumnes());
 }
 
+/*
+Returns the value.
+Throws a exception if the arguments are invalid.
+*/
 float MatriuSparse::getVal(const int &row, const int &col) const {
     if (row < 0 || col < 0 || !((row < nRow_ && col < nCol_)))
         throw "Error: Seleccio invalida";
@@ -285,6 +334,11 @@ void MatriuSparse::setRowCol(const int &a, const int &e) {
     nCol_ = e;
 }
 
+/*
+Private.
+Returns the index for the value in columnValors_. 
+Returns -1 if the row and column is outside of the matrix or the value is 0.
+*/
 int MatriuSparse::binarySearch(const int &row, const int &col) const {
     if (row < nRow_ && col < nCol_) {
         int L = rowIndex_[row], H = rowIndex_[row + 1] - 1;
@@ -302,9 +356,12 @@ int MatriuSparse::binarySearch(const int &row, const int &col) const {
     return -1;
 }
 
+/*
+Return the position between fisrt and last of the first element in the vector that is greater than the argument val.
+*/
 template <typename T, typename CMP>
-int MatriuSparse::searchFirstGreater(const int &min, const int &max, const int &val, T vector, CMP cmp) const {
-    int low = min, high = max, mid = 0;
+int MatriuSparse::searchFirstGreater(const int &first, const int &last, const int &val, std::vector<T> vector, CMP cmp) const {
+    int low = first, high = last, mid = 0;
     while (low < high) {
         mid = (low + high) / 2;
         if (cmp(val, vector[mid]))

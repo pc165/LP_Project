@@ -42,7 +42,7 @@ class MatriuSparse {
     int numberOfValuesInColumn(const int &col);
     int binarySearch(const int &row, const int &col) const;
     template <typename T, typename CMP>
-    int searchFirstGreater(const int &min, const int &max, const int &val, T vector, CMP cmp) const;
+    int searchFirstGreater(const int &min, const int &max, const int &val, std::vector<T> vector, CMP cmp) const;
 
   private:
     std::vector<int> rowIndex_;
