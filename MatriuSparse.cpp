@@ -1,6 +1,7 @@
 #include "MatriuSparse.h"
 #include <fstream>
 #include <iostream>
+#include <limits>
 #include <map>
 #include <math.h>
 #include <string>
