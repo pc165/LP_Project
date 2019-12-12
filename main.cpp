@@ -4,6 +4,6 @@
 int main() {
     CaronteTest1 a;
     CaronteTest2 b;
-    a.test();
+    //a.test();
     b.test();
 }
