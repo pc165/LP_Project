@@ -1,9 +1,11 @@
 #include "MatriuSparse.h"
 #include <fstream>
 #include <iostream>
+#include <map>
 #include <math.h>
 #include <string>
 #include <vector>
+#define DOUBLE(x) (static_cast<double>(x))
 
 /*
 File constructor: Efficiently constructs the object from a file.
@@ -86,8 +88,8 @@ void MatriuSparse::copy(const MatriuSparse &e) {
 
 int MatriuSparse::numberOfValuesInColumn(const int &col) {
     int sum = 0;
-    for (int i = 0; i < nRow_; i++)
-        for (int j = rowIndex_[i]; j < rowIndex_[i + 1]; j++)
+    for (size_t i = 0; i < nRow_; i++)
+        for (size_t j = rowIndex_[i]; j < rowIndex_[i + 1]; j++)
             if (columnValors_[j].first == col)
                 sum++;
     return sum;
@@ -118,7 +120,7 @@ std::vector<float> MatriuSparse::operator*(const std::vector<float> &e) {
 
     std::vector<float> result(nRow_, 0);
 
-    for (int i = 0; i < nRow_; i++)
+    for (size_t i = 0; i < nRow_; i++)
         if (rowIndex_[i] != rowIndex_[i + 1])
             for (int k = rowIndex_[i]; k < rowIndex_[i + 1]; k++)
                 result[i] += columnValors_[k].second * e[columnValors_[k].first];
@@ -137,9 +139,27 @@ MatriuSparse MatriuSparse::operator/(const float &e) {
 }
 
 void MatriuSparse::calculaGrau(std::vector<int> &graus) const {
+    graus.resize(rowIndex_.size() - 1);
+    for (size_t i = 0; i < rowIndex_.size() - 1; i++)
+        graus[i] = rowIndex_[i + 1] - rowIndex_[i];
 }
 
 void MatriuSparse::calculaDendograms(std::vector<Tree<double> *> &) const {
+}
+
+typedef std::pair<std::pair<int, int>, double> mapIter;
+typedef std::pair<int, int> pairInt;
+
+void MatriuSparse::creaMaps(std::vector<std::map<pair<int, int>, double>> &vMaps) const {
+    vMaps.resize(getNFiles());
+    for (size_t i = 0; i < nRow_; i++) {
+        for (size_t k = rowIndex_[i]; k < rowIndex_[i + 1]; k++) {
+            if (columnValors_[k].second) {
+                if (i != columnValors_[k].first)
+                    vMaps[i].emplace(mapIter(pairInt(i, columnValors_[k].first), 0));
+            }
+        }
+    }
 }
 
 /*
@@ -169,11 +189,11 @@ void MatriuSparse::insertValue(const int &row, const int &col, const int &value)
             rowIndex_.resize(row + 2);
         }
         if (row + 1 == nRow_) {
-            for (int i = oldRow + 1; i < rowIndex_.size(); i++)
+            for (size_t i = oldRow + 1; i < rowIndex_.size(); i++)
                 rowIndex_[i] = rowIndex_[i - 1];
             rowIndex_.back()++;
         } else {
-            for (int i = row + 1; i < rowIndex_.size(); i++)
+            for (size_t i = row + 1; i < rowIndex_.size(); i++)
                 rowIndex_[i]++;
         }
     } else {
@@ -182,7 +202,7 @@ void MatriuSparse::insertValue(const int &row, const int &col, const int &value)
             columnValors_[z].second = value;
             return;
         } else
-            for (int i = row + 1; i < rowIndex_.size(); i++)
+            for (size_t i = row + 1; i < rowIndex_.size(); i++)
                 rowIndex_[i]++;
     }
     int i = searchFirstGreater(rowIndex_[row], rowIndex_[row + 1] - 1, col, columnValors_, comparePair);
@@ -210,8 +230,8 @@ void MatriuSparse::removeValue(const int &row, const int &col) {
     if (i >= 0) {
         columnValors_.erase(columnValors_.begin() + i);
         if (row + 1 != nRow_) {
-            for (int i = row + 1; i < rowIndex_.size(); i++)
-                rowIndex_[i]--;
+            for (size_t z = row + 1; z < rowIndex_.size(); z++)
+                rowIndex_[z]--;
         } else {
             rowIndex_[row + 1]--;
             if (rowIndex_[row] - rowIndex_[row + 1] == 0) {
@@ -222,9 +242,9 @@ void MatriuSparse::removeValue(const int &row, const int &col) {
         if (columnValors_.size() > 0) {
             if (col + 1 == nCol_ && numberOfValuesInColumn(col) == 0) {
                 int maxCol = columnValors_[rowIndex_[1] - 1].first;
-                for (int i = 0; i < nRow_; i++) {
-                    if (columnValors_[rowIndex_[i + 1] - 1].first > maxCol)
-                        maxCol = columnValors_[rowIndex_[i + 1] - 1].first;
+                for (size_t z = 0; z < nRow_; z++) {
+                    if (columnValors_[rowIndex_[z + 1] - 1].first > maxCol)
+                        maxCol = columnValors_[rowIndex_[z + 1] - 1].first;
                 }
                 nCol_ = maxCol + 1;
             }
@@ -254,10 +274,10 @@ void MatriuSparse::setVal(const int &row, const int &col, const float &value) {
 template <typename T>
 T &MatriuSparse::format(T &a, const MatriuSparse &e) const {
     a << "MATRIU DE FILES: " << e.getNFiles() << " : COLUMNES: " << e.getNColumnes() << "\n";
-    for (int i = 0; i < e.nRow_; i++) {
+    for (size_t i = 0; i < e.nRow_; i++) {
         if (e.rowIndex_[i] != e.rowIndex_[i + 1]) {
             a << "VALORS FILA:" << i << "(COL:VALOR)\n";
-            for (int j = e.rowIndex_[i]; j < e.rowIndex_[i + 1]; j++)
+            for (size_t j = e.rowIndex_[i]; j < e.rowIndex_[i + 1]; j++)
                 a << "(" << e.columnValors_[j].first << " : " << e.columnValors_[j].second << ") ";
             a << "\n";
         }
@@ -287,8 +307,8 @@ std::ostream &operator<<(std::ostream &a, const MatriuSparse &e) {
     //    }
     //    a << "\n";
     //}
-    //return a;
-    return e.format<std::ostream>(a, e);
+    return a;
+    //return e.format<std::ostream>(a, e);
 }
 
 std::ofstream &operator<<(std::ofstream &a, const MatriuSparse &e) {
