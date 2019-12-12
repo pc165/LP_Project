@@ -4,6 +4,8 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <utility>
+#include <map>
 
 class MatriuSparse {
   public:
@@ -34,7 +36,7 @@ class MatriuSparse {
     void calculaGrau(std::vector<int> &) const;
     void calculaDendograms(std::vector<Tree<double> *> &) const;
     void clear() { init(0, 0); };
-
+    void creaMaps(std::vector<std::map<std::pair<int, int>, double>>& vMaps) const;
   private:
     void insertValue(const int &row, const int &col, const int &value);
     void removeValue(const int &row, const int &col);
