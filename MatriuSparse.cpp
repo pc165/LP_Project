@@ -1,9 +1,11 @@
 #include "MatriuSparse.h"
+#include <algorithm>
 #include <fstream>
 #include <iostream>
 #include <limits>
 #include <map>
 #include <math.h>
+#include <set>
 #include <string>
 #include <vector>
 #define DOUBLE(x) (static_cast<double>(x))
@@ -138,6 +140,21 @@ MatriuSparse MatriuSparse::operator/(const float &e) {
 
     return res;
 }
+/*
+Busca els veins dels arguments i els retorna en una parella de sets
+first = set de veins del node1
+second = set de veins del node2
+*/
+std::pair<std::set<int>, std::set<int>> MatriuSparse::getVeins(const int &node1, const int &node2) const {
+    std::set<int> a, b;
+    for (size_t k = rowIndex_[node1]; k < rowIndex_[node1 + 1]; k++) { //buscar veins del node1
+        a.insert(columnValors_[k].first);
+    }
+    for (size_t k = rowIndex_[node2]; k < rowIndex_[node2 + 1]; k++) { //buscar veins del node2
+        b.insert(columnValors_[k].first);
+    }
+    return std::make_pair(a, b);
+}
 
 void MatriuSparse::calculaGrau(std::vector<int> &graus) const {
     graus.resize(rowIndex_.size() - 1);
@@ -145,20 +162,22 @@ void MatriuSparse::calculaGrau(std::vector<int> &graus) const {
         graus[i] = rowIndex_[i + 1] - rowIndex_[i];
 }
 
-void MatriuSparse::calculaDendograms(std::vector<Tree<double> *> &) const {
+void MatriuSparse::calculaDendograms(std::vector<Tree<double> *> &vDendrogrames) const {
+    for (int i = 0; i < rowIndex_.size(); i++) {
+        Tree<double> *j = new Tree<double>();
+        vDendrogrames.push_back(j);
+    }
 }
 
 typedef std::pair<std::pair<int, int>, double> mapIter;
-typedef std::pair<int, int> pairInt;
+//typedef std::pair<int, int> make_pair;
 
 void MatriuSparse::creaMaps(std::vector<std::map<pair<int, int>, double>> &vMaps) const {
     vMaps.resize(getNFiles());
     for (size_t i = 0; i < nRow_; i++) {
         for (size_t k = rowIndex_[i]; k < rowIndex_[i + 1]; k++) {
-            if (columnValors_[k].second) {
-                if (i != columnValors_[k].first)
-                    vMaps[i].emplace(mapIter(pairInt(i, columnValors_[k].first), 0));
-            }
+            if (i != columnValors_[k].first)
+                vMaps[i].emplace(mapIter(make_pair(i, columnValors_[k].first), 0));
         }
     }
 }

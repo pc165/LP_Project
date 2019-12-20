@@ -51,9 +51,9 @@ class CaronteTest1 {
             cout << "Comment :=>> TEST SOBRE XARXA1 ....................... " << endl;
             cout << "Comment :=>> ==========================================" << endl;
 
-            string nomFitxer = "Xarxa1.txt";
             cout << "Comment :=>> ==========================================" << endl;
             cout << "Comment :=>> LLEGINT I CREANT XARXA1 ................. " << endl;
+            string nomFitxer = "Xarxa1.txt";
             MatriuSparse m1(nomFitxer);
 
             cout << "Comment :=>> ==========================================" << endl;

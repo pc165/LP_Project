@@ -2,10 +2,11 @@
 #include "Tree.hpp"
 #include <fstream>
 #include <iostream>
-#include <string>
-#include <vector>
-#include <utility>
 #include <map>
+#include <set>
+#include <string>
+#include <utility>
+#include <vector>
 
 class MatriuSparse {
   public:
@@ -31,12 +32,13 @@ class MatriuSparse {
     void setRowCol(const int &e, const int &a);
     inline int getNFiles() const { return nCol_ > nRow_ ? nCol_ : nRow_; } // square matrix, return the biggets number
     inline int getNColumnes() const { return nCol_ > nRow_ ? nCol_ : nRow_; }
-
+    std::pair<std::set<int>, std::set<int>> getVeins(const int &i, const int &j) const;
     int getNValues() const { return columnValors_.size(); };
     void calculaGrau(std::vector<int> &) const;
     void calculaDendograms(std::vector<Tree<double> *> &) const;
     void clear() { init(0, 0); };
-    void creaMaps(std::vector<std::map<std::pair<int, int>, double>>& vMaps) const;
+    void creaMaps(std::vector<std::map<std::pair<int, int>, double>> &vMaps) const;
+
   private:
     void insertValue(const int &row, const int &col, const int &value);
     void removeValue(const int &row, const int &col);
