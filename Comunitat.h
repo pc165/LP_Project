@@ -33,7 +33,7 @@ class Comunitat {
     //la primera te com anterior -1 i la ultima com a seguent la mida del vector
     vector<pair<int, int>> indexComs_;
     //vector que mante el maxim de deltaQij d'una fila, per no recalcular innecesariament
-    vector<pair<int, double>> maxDeltaQFil_;
+    vector<pair<int, double>> maxDeltaQ_;
     //index que indica quina es la primera comunitat activa
     int primComdeltaQ_;
     //Vector d'arbres que va creant el dendograma. Inicialment es un vector amb un arbre per cada node del graf.

@@ -1,9 +1,12 @@
 #include "MatriuSparse.h"
+#include <algorithm>
 #include <fstream>
 #include <iostream>
+#include <iterator>
 #include <limits>
 #include <map>
 #include <math.h>
+#include <set>
 #include <string>
 #include <vector>
 #define DOUBLE(x) (static_cast<double>(x))
@@ -138,6 +141,36 @@ MatriuSparse MatriuSparse::operator/(const float &e) {
 
     return res;
 }
+/*
+Busca els veins dels arguments i els retorna en una parella de sets
+first = set de veins del node1
+second = set de veins del node2
+*/
+void MatriuSparse::getVeins(const int &i, const int &j,
+                            std::set<int> &veinsComuns,
+                            std::set<int> &veinsNomesDe_i,
+                            std::set<int> &veinsNomesDe_j) const {
+
+    std::set<int> veinsDe_i, veinsDe_j;
+    for (size_t k = rowIndex_[i]; k < rowIndex_[i + 1]; k++) {
+        veinsDe_i.insert(columnValors_[k].first);
+    }
+    for (size_t k = rowIndex_[j]; k < rowIndex_[j + 1]; k++) {
+        veinsDe_j.insert(columnValors_[k].first);
+    }
+
+    std::set_intersection(veinsDe_i.cbegin(), veinsDe_i.cend(),
+                          veinsDe_j.cbegin(), veinsDe_j.cend(),
+                          std::inserter(veinsComuns, veinsComuns.begin()));
+
+    std::set_difference(veinsDe_i.cbegin(), veinsDe_i.cend(),
+                        veinsComuns.cbegin(), veinsComuns.cend(),
+                        std::inserter(veinsNomesDe_i, veinsNomesDe_i.begin()));
+
+    std::set_difference(veinsDe_j.cbegin(), veinsDe_j.cend(),
+                        veinsComuns.cbegin(), veinsComuns.cend(),
+                        std::inserter(veinsNomesDe_j, veinsNomesDe_j.begin()));
+}
 
 void MatriuSparse::calculaGrau(std::vector<int> &graus) const {
     graus.resize(rowIndex_.size() - 1);
@@ -145,20 +178,21 @@ void MatriuSparse::calculaGrau(std::vector<int> &graus) const {
         graus[i] = rowIndex_[i + 1] - rowIndex_[i];
 }
 
-void MatriuSparse::calculaDendograms(std::vector<Tree<double> *> &) const {
+void MatriuSparse::calculaDendograms(std::vector<Tree<double> *> &vDendrogrames) const {
+    for (int i = 0; i < nRow_; i++) {
+        vDendrogrames.push_back(new Tree<double>(i));
+    }
 }
 
 typedef std::pair<std::pair<int, int>, double> mapIter;
-typedef std::pair<int, int> pairInt;
+//typedef std::pair<int, int> make_pair;
 
 void MatriuSparse::creaMaps(std::vector<std::map<pair<int, int>, double>> &vMaps) const {
     vMaps.resize(getNFiles());
     for (size_t i = 0; i < nRow_; i++) {
         for (size_t k = rowIndex_[i]; k < rowIndex_[i + 1]; k++) {
-            if (columnValors_[k].second) {
-                if (i != columnValors_[k].first)
-                    vMaps[i].emplace(mapIter(pairInt(i, columnValors_[k].first), 0));
-            }
+            if (i != columnValors_[k].first)
+                vMaps[i].emplace(mapIter(make_pair(i, columnValors_[k].first), 0));
         }
     }
 }
