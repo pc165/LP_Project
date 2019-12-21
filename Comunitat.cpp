@@ -77,27 +77,28 @@ void Comunitat::fusiona(int i, int j) {
     for (auto &vei : veinsComuns) {
         auto &dQ_Vei = deltaQ_[vei];
         auto &dQ_J = deltaQ_[j];
+        auto &dQ_I = deltaQ_[i];
         //Modifiquem deltaQ(x,j). = deltaQ(x,i)+ deltaQ(x,j).
         dQ_Vei[make_pair(vei, j)] += dQ_Vei[make_pair(vei, i)];
         //Esborrem deltaQ[x,i].
         dQ_Vei.erase(make_pair(vei, i));
         //Modifiquem deltaQ(j,x) = deltaQ(i,x)+ deltaQ(j,x).
-        dQ_J[make_pair(j, vei)] += dQ_J[make_pair(i, vei)];
+        dQ_J[make_pair(j, vei)] += dQ_I[make_pair(i, vei)];
     }
 
     //A.2. Pels x veïns només de i:
     for (auto &vei : veinsNomesDe_i) {
         auto &dQ_Vei = deltaQ_[vei];
         auto &dQ_J = deltaQ_[j];
+        auto &dQ_I = deltaQ_[i];
         //Afegim deltaQ(x,j). = deltaQ(x,i) – 2 A[j]* A[x].
         double dQ = dQ_Vei[make_pair(vei, i)] - 2 * a_[j] * a_[vei];
         dQ_Vei.insert(mapIter(make_pair(vei, j), dQ));
         //Esborrem deltaQ(x,i).
         dQ_Vei.erase(make_pair(vei, i));
         //Afegim deltaQ(j,x) = deltaQ(i,x)‐ 2 A[j]* A[x].
-        dQ = dQ_J[make_pair(i, vei)] - 2 * a_[j] * a_[vei];
+        dQ = dQ_I[make_pair(i, vei)] - 2 * a_[j] * a_[vei];
         dQ_J.insert(mapIter(make_pair(j, vei), dQ));
-        dQ_Vei.erase(make_pair(vei, i));
     }
 
     //A.3. Pels x veïns només de j:
@@ -138,9 +139,9 @@ void Comunitat::fusiona(int i, int j) {
     }
 
     //A5. Eliminem tots els veïns de i, per deixar la posició i de deltaQ buida..
-    for (auto &vei : veinsNomesDe_i) {
-        deltaQ_[vei] = map<pair<int, int>, double>();
-    }
+    //for (auto &vei : veinsNomesDe_i) {
+    deltaQ_[i] = map<pair<int, int>, double>();
+    //}
 
     //B1. Marquem la comunitat i com a esborrada al vector IndexComs.
     indexComs_[indexComs_[i].second].first = indexComs_[i].first;

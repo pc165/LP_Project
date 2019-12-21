@@ -153,10 +153,12 @@ void MatriuSparse::getVeins(const int &i, const int &j,
 
     std::set<int> veinsDe_i, veinsDe_j;
     for (size_t k = rowIndex_[i]; k < rowIndex_[i + 1]; k++) {
-        veinsDe_i.insert(columnValors_[k].first);
+        //if (columnValors_[k].first != j)
+            veinsDe_i.insert(columnValors_[k].first);
     }
     for (size_t k = rowIndex_[j]; k < rowIndex_[j + 1]; k++) {
-        veinsDe_j.insert(columnValors_[k].first);
+        //if (columnValors_[k].first != i)
+            veinsDe_j.insert(columnValors_[k].first);
     }
 
     std::set_intersection(veinsDe_i.cbegin(), veinsDe_i.cend(),
