@@ -21,6 +21,7 @@ Comunitat::Comunitat(MatriuSparse *pMAdj) {
 Comunitat::~Comunitat() {
     pMAdj_ = nullptr;
 }
+
 void Comunitat::clear() {
     pMAdj_ = nullptr;
     deltaQ_.clear();
@@ -155,7 +156,13 @@ void Comunitat::fusiona(int i, int j) {
     a_[j] += a_[i];
 }
 
-void Comunitat::generaDendrogram(int pos1, int pos2, double deltaQp1p2) {
+void Comunitat::generaDendrogram(int i, int j, double deltaQp1p2) {
+    Tree<double> *tree = new Tree<double>(deltaQp1p2);
+    tree->setLeft(new Tree<double>(i));
+    tree->setRight(new Tree<double>(j));
+    delete vDendrograms_[i];
+    delete vDendrograms_[j];
+    vDendrograms_[i] = tree;
 }
 
 void Comunitat::calculaComunitats(list<Tree<double> *> &listDendrogram) {
@@ -165,11 +172,12 @@ void Comunitat::calculaComunitats(list<Tree<double> *> &listDendrogram) {
     creaIndexComs();
     primComdeltaQ_ = 0;
     creaDeltaQHeap();
-    fusiona(3, 0);
+    //fusiona(3, 0);
     //Veiem que el vector k ja no el necessitem i per això un cop calculada la A es podria fer un clear() de la k
     //per tal de no tenir ocupada més memòria de la necessària.
     k_.clear();
     pMAdj_->calculaDendograms(vDendrograms_);
+    //generaDendrogram(1, 2, 3);
     for (auto &i : vDendrograms_) {
         listDendrogram.push_back(i);
     }
