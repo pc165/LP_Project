@@ -67,102 +67,140 @@ void Comunitat::creaDeltaQHeap() {
     }
 }
 
-void Comunitat::modificaVei(int com1, int com2, int vei, int cas) {
+void Comunitat::modificaVei(int i, int j, int k, tipusVei cas) {
+    auto &dQ_K = deltaQ_[k];
+    auto &dQ_J = deltaQ_[j];
+    auto &dQ_I = deltaQ_[i];
+    switch (cas) {
+    case tipusVei::comu: {
+        //A. 1. Pels x veïns de i i j:
+        //Modifiquem deltaQ(x,j). = deltaQ(x,i)+ deltaQ(x,j).
+        dQ_K[make_pair(k, j)] += dQ_K[make_pair(k, i)];
+        //Esborrem deltaQ[x,i].
+        dQ_K.erase(make_pair(k, i));
+        //Modifiquem deltaQ(j,x) = deltaQ(i,x)+ deltaQ(j,x).
+        dQ_J[make_pair(j, k)] += dQ_I[make_pair(i, k)];
+        break;
+    }
+    case tipusVei::nomes_i: {
+        //A.2. Pels x veïns només de i:
+        //Afegim deltaQ(x,j). = deltaQ(x,i) – 2 A[j]* A[x].
+        double dQ = dQ_K[make_pair(k, i)] - 2 * a_[j] * a_[k];
+        dQ_K.insert(mapIter(make_pair(k, j), dQ));
+        //Esborrem deltaQ(x,i).
+        dQ_K.erase(make_pair(k, i));
+        //Afegim deltaQ(j,x) = deltaQ(i,x)‐ 2 A[j]* A[x].
+        dQ = dQ_I[make_pair(i, k)] - 2 * a_[j] * a_[k];
+        dQ_J.insert(mapIter(make_pair(j, k), dQ));
+        break;
+    }
+    case tipusVei::nomes_j: {
+        //A.3. Pels x veïns només de j:
+        //Modifiquem deltaQ(x,j). = deltaQ(x,j) – 2 A[i]* A[x]
+        dQ_K[make_pair(k, j)] -= 2 * a_[i] * a_[k];
+        //Modifiquem deltaq(j,x) = deltaQ(j,x)‐ 2 A[i]* A[x].
+        dQ_J[make_pair(j, k)] -= 2 * a_[i] * a_[k];
+        break;
+    }
+    }
 }
 
 void Comunitat::fusiona(int i, int j) {
-    std::set<int> veinsComuns, veinsNomesDe_i, veinsNomesDe_j;
-    pMAdj_->getVeins(i, j, veinsComuns, veinsNomesDe_i, veinsNomesDe_j);
+    std::set<int> veins_comuns, veins_de_i, veins_de_j;
+    pMAdj_->getVeins(i, j, veins_comuns, veins_de_i, veins_de_j);
 
-    //A. 1. Pels x veïns de i i j:
-    for (auto &vei : veinsComuns) {
-        auto &dQ_Vei = deltaQ_[vei];
-        auto &dQ_J = deltaQ_[j];
-        auto &dQ_I = deltaQ_[i];
-        //Modifiquem deltaQ(x,j). = deltaQ(x,i)+ deltaQ(x,j).
-        dQ_Vei[make_pair(vei, j)] += dQ_Vei[make_pair(vei, i)];
-        //Esborrem deltaQ[x,i].
-        dQ_Vei.erase(make_pair(vei, i));
-        //Modifiquem deltaQ(j,x) = deltaQ(i,x)+ deltaQ(j,x).
-        dQ_J[make_pair(j, vei)] += dQ_I[make_pair(i, vei)];
-    }
 
-    //A.2. Pels x veïns només de i:
-    for (auto &vei : veinsNomesDe_i) {
-        auto &dQ_Vei = deltaQ_[vei];
-        auto &dQ_J = deltaQ_[j];
-        auto &dQ_I = deltaQ_[i];
-        //Afegim deltaQ(x,j). = deltaQ(x,i) – 2 A[j]* A[x].
-        double dQ = dQ_Vei[make_pair(vei, i)] - 2 * a_[j] * a_[vei];
-        dQ_Vei.insert(mapIter(make_pair(vei, j), dQ));
-        //Esborrem deltaQ(x,i).
-        dQ_Vei.erase(make_pair(vei, i));
-        //Afegim deltaQ(j,x) = deltaQ(i,x)‐ 2 A[j]* A[x].
-        dQ = dQ_I[make_pair(i, vei)] - 2 * a_[j] * a_[vei];
-        dQ_J.insert(mapIter(make_pair(j, vei), dQ));
-    }
+    //cout << "Veins Comuns: \n";
+    //for (auto &vei : veins_comuns)
+    //    cout << vei << ' ';
+    //cout << '\n';
+    //cout << "Veins de " << i << " : \n";
+    //for (auto &vei : veins_de_i)
+    //    cout << vei << ' ';
+    //cout << '\n';
 
-    //A.3. Pels x veïns només de j:
-    for (auto &vei : veinsNomesDe_j) {
-        auto &dQ_Vei = deltaQ_[vei];
-        auto &dQ_J = deltaQ_[j];
-        //Modifiquem deltaQ(x,j). = deltaQ(x,j) – 2 A[i]* A[x]
-        dQ_Vei[make_pair(vei, j)] -= 2 * a_[i] * a_[vei];
-        //Modifiquem deltaq(j,x) = deltaQ(j,x)‐ 2 A[i]* A[x].
-        dQ_J[make_pair(j, vei)] -= 2 * a_[i] * a_[vei];
-    }
+    for (auto &vei : veins_comuns)
+        modificaVei(i, j, vei, tipusVei::comu);
 
-    //A4. Mantenim el màxim de j i de cada veí al vector maxDeltaQ i modifiquem \
-    el seu valor de deltaM al heap hTotal si és necessari
-    //Mantenim el màxim de dQ de j ?
-    auto &max = maxDeltaQ_[j];
-    for (auto &j_2 : deltaQ_[j]) {
-        const int &I = j_2.first.first;
-        const int &J = j_2.first.second;
-        const double dQ = j_2.second;
-        if (dQ > max.second)
-            max = make_pair(J, dQ);
-        if (max.second > hTotal_.max().getVal())
-            hTotal_.modifElem(ElemHeap(dQ, make_pair(I, J)));
-    }
-
-    //Mantenim el màxim de dQ de cada veí (de j?)
-    for (auto &vei : veinsNomesDe_j) {
-        for (auto &j_2 : deltaQ_[vei]) {
-            const int &I = j_2.first.first;
-            const int &J = j_2.first.second;
-            const double dQ = j_2.second;
-            if (dQ > max.second)
-                max = make_pair(J, dQ);
-            if (max.second > hTotal_.max().getVal())
-                hTotal_.modifElem(ElemHeap(dQ, make_pair(I, J)));
+    for (auto &vei : veins_de_i) {
+        if (vei == j || binary_search(veins_comuns.cbegin(), veins_comuns.cend(), vei)) {
+            cout << vei << " Skipped \n ";
+            continue;
         }
+        modificaVei(i, j, vei, tipusVei::nomes_i);
+    }
+    cout << '\n';
+
+    //cout << "Veins de " << j << " : \n";
+    //for (auto &vei : veins_de_j)
+    //    cout << vei << ' ';
+
+    cout << '\n';
+    for (auto &vei : veins_de_j) {
+        if (vei == i || binary_search(veins_comuns.cbegin(), veins_comuns.cend(), vei)) {
+            cout << vei << " Skipped \n ";
+            continue;
+        }
+        modificaVei(i, j, vei, tipusVei::nomes_j);
     }
 
     //A5. Eliminem tots els veïns de i, per deixar la posició i de deltaQ buida..
-    //for (auto &vei : veinsNomesDe_i) {
     deltaQ_[i] = map<pair<int, int>, double>();
-    //}
+    deltaQ_[j].erase(make_pair(j, i));
 
-    //B1. Marquem la comunitat i com a esborrada al vector IndexComs.
-    indexComs_[indexComs_[i].second].first = indexComs_[i].first;
-    indexComs_[indexComs_[i].first].second = indexComs_[i].second;
+    //A4. Mantenim el màxim de j i de cada veí al vector maxDeltaQ i modifiquem el seu valor de deltaM al heap hTotal si és necessari
+    //Mantenim el màxim de dQ de j ?
+
+    for (auto &vei : veins_de_j) {
+        for (auto &dQ : deltaQ_[vei]) {
+            if (dQ.second > maxDeltaQ_[vei].second) {
+                maxDeltaQ_[vei] = make_pair(dQ.first.second, dQ.second);
+                hTotal_.modifElem(ElemHeap(dQ.second, make_pair(vei, dQ.first.second)));
+            }
+        }
+    }
+
+    //B1. Marquem la comunitat i com a esborrada al vector IndexComs.????
+    if (indexComs_[i].second > -1 && indexComs_[i].second < indexComs_.size())
+        indexComs_[indexComs_[i].second].first = indexComs_[i].first;
+    if (indexComs_[i].first > -1 && indexComs_[i].first < indexComs_.size())
+        indexComs_[indexComs_[i].first].second = indexComs_[i].second;
     //L’índex primCom s’actualitazarà només si la comunitat eliminada és la primera.
     if (i == primComdeltaQ_)
         primComdeltaQ_ = j;
-    // TODO
-    //B2. Fusionem els arbres de les posicions i i j del vector vDendrogrames posant-los a la posició j del vector.
+
+    generaDendrogram(i, j, q_);
     //B3. Recalculem la A[j]=A[j]+A[i]
     a_[j] += a_[i];
 }
 
+void Comunitat::print_dQmap() {
+    cout << "Map start\n";
+    for (auto &i : deltaQ_) {
+        for (auto &j : i) {
+            cout << '(' << j.first.first << " , " << j.first.second << "): " << j.second << ' ';
+        }
+        cout << '\n';
+    }
+    cout << "Map end\n";
+}
+
+bool Comunitat::isDeleted(const int &i) {
+    bool a = false, b = false;
+    if (indexComs_[i].second > -1 && indexComs_[i].second < indexComs_.size())
+        a = indexComs_[indexComs_[i].second].first == indexComs_[i].first;
+    if (indexComs_[i].first > -1 && indexComs_[i].first < indexComs_.size())
+        b = indexComs_[indexComs_[i].first].second = indexComs_[i].second;
+
+    return a && b;
+}
+
 void Comunitat::generaDendrogram(int i, int j, double deltaQp1p2) {
     Tree<double> *tree = new Tree<double>(deltaQp1p2);
-    tree->setLeft(new Tree<double>(i));
-    tree->setRight(new Tree<double>(j));
-    delete vDendrograms_[i];
-    delete vDendrograms_[j];
-    vDendrograms_[i] = tree;
+    tree->setLeft(vDendrograms_[j]);
+    tree->setRight(vDendrograms_[i]);
+    vDendrograms_[j] = tree;
+    vDendrograms_[i] = nullptr;
 }
 
 void Comunitat::calculaComunitats(list<Tree<double> *> &listDendrogram) {
@@ -172,13 +210,47 @@ void Comunitat::calculaComunitats(list<Tree<double> *> &listDendrogram) {
     creaIndexComs();
     primComdeltaQ_ = 0;
     creaDeltaQHeap();
-    //fusiona(3, 0);
-    //Veiem que el vector k ja no el necessitem i per això un cop calculada la A es podria fer un clear() de la k
-    //per tal de no tenir ocupada més memòria de la necessària.
     k_.clear();
     pMAdj_->calculaDendograms(vDendrograms_);
-    //generaDendrogram(1, 2, 3);
-    for (auto &i : vDendrograms_) {
-        listDendrogram.push_back(i);
+
+    std::map<int, int> nodesFusionats;
+    while (hTotal_.size() > 1) {
+        auto max = hTotal_.max();
+        auto i = max.getPos().first, j = max.getPos().second;
+
+        hTotal_.modifElem(ElemHeap(-1, make_pair(j, i))); // modificar la posicio redundant (j,i)
+
+        cout << "---------------------Fusio (" << i << ',' << j << "): " << max.getVal() << " -------------------" << hTotal_.size() << '\n';
+        cout << "---------------------Before fusion\n";
+        print_dQmap();
+        cout << hTotal_ << "\n\n";
+
+        hTotal_.delMax();
+        if (max.getVal() > 0) {
+            q_ += max.getVal();
+
+            auto it = nodesFusionats.find(j);
+            if (it != nodesFusionats.cend())
+                j = it->second;
+            nodesFusionats[i] = j;
+
+            fusiona(i, j);
+            cout << "---------------------After fusion\n";
+            print_dQmap();
+            cout << hTotal_ << "\n\n";
+        }
+
+        int z = 0;
+        cout << "\nvDendrograms_\n";
+        for (auto &i : vDendrograms_) {
+            cout << z << '\n';
+            if (i != nullptr)
+                cout << *i;
+            else
+                cout << '\n';
+            ++z;
+        }
+        cout << '\n';
     }
+    int dummy = 0;
 }
