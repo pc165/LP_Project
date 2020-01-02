@@ -366,14 +366,14 @@ T &format(T &a, const MatriuSparse &e) {
 }
 
 std::ostream &operator<<(std::ostream &a, const MatriuSparse &e) {
-    float colVal = 0;
-    for (int i = 0; i < e.nRow_; i++) {
-        for (int j = 0; j < e.nCol_; j++) {
-            e.getVal(i, j, colVal);
-            a << colVal << " ";
-        }
-        a << "\n";
-    }
+    //float colVal = 0;
+    //for (int i = 0; i < e.nRow_; i++) {
+    //    for (int j = 0; j < e.nCol_; j++) {
+    //        e.getVal(i, j, colVal);
+    //        a << colVal << " ";
+    //    }
+    //    a << "\n";
+    //}
     return a;
     //return format<std::ostream>(a, e);
 }
