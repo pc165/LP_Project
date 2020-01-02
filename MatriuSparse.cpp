@@ -2,52 +2,50 @@
 #include <algorithm>
 #include <fstream>
 #include <iostream>
-#include <iterator>
 #include <math.h>
-#include <set>
 #include <string>
 #include <vector>
-#define FLT_EPSILON 1.192092896e-07F // smallest such that 1.0+FLT_EPSILON != 1.0, this is needed to compare floats.
+#define FLT_EPSILON 1.192092896e-07F
 
 MatriuSparse::MatriuSparse(const std::string &e) : nRow_(0), nCol_(0) {
     std::fstream f(e);
     if (f.is_open()) {
         int count = 0;
         std::string line, lastLine;
-        while (std::getline(f, line)) // count the number of non-empty (more than one character) lines from the file
-            if (line.size() > 1) {    // if there are more than one character
-                lastLine = line;      // save last non-empty line
+        while (std::getline(f, line))
+            if (line.size() > 1) {   
+                lastLine = line;    
                 count++;
             }
-        lastLine = lastLine.substr(0, lastLine.find('\t'));       // find X coordinate, the data is sperarated by a tab (\t)
-        columnValors_.resize(count, std::pair<int, float>(0, 1)); // resize to the number of
+        lastLine = lastLine.substr(0, lastLine.find('\t'));      
+        columnValors_.resize(count, std::pair<int, float>(0, 1));
 
-        nRow_ = std::stoi(lastLine) + 1; // stoi = String TO Integer, add 1 because the file starts to count from 0.
-        rowIndex_.resize(nRow_ + 1);     // we need an extra space to store the number of values in the matrix
-        rowIndex_.back() = count;        // rowIndex_.back() == columnValors_.size()
+        nRow_ = std::stoi(lastLine) + 1;
+        rowIndex_.resize(nRow_ + 1);    
+        rowIndex_.back() = count;       
 
-        f.clear();         // clear flags (end flag)
-        f.seekg(0, f.beg); // return to the beginning of the file
+        f.clear();        
+        f.seekg(0, f.beg);
         int newX = 0, oldX = 0, y = 0, countIndex = 0;
         count = 0;
         while (!f.eof() && count < columnValors_.size()) {
             f >> newX >> y;
             columnValors_[count].first = y;
-            if (y > nCol_) // set the number of columns to the biggest column
+            if (y > nCol_) 
                 nCol_ = y;
-            if (newX != oldX) { // if we changed of row then update the values from oldX to the new X
+            if (newX != oldX) { 
                 for (int i = oldX; i < newX; i++)
-                    rowIndex_[i + 1] = count; //rowindex_[i] - rowindex[i+1] = number of elements in the i row
+                    rowIndex_[i + 1] = count; 
                 oldX = newX;
             }
             count++;
         }
-        nCol_++; // add one because the file started to count the columns from 0
+        nCol_++; 
         f.close();
     }
 }
 
-inline bool cmpFloat(const float &e, const float &a) { // we need this function to compare floats, fabs = float aboslute value
+inline bool cmpFloat(const float &e, const float &a) {
     return (fabs(e - a) < FLT_EPSILON);
 }
 
@@ -97,37 +95,12 @@ void MatriuSparse::init(const int &row, const int &col) {
     rowIndex_.resize(nRow_ + 1);
 }
 
-MatriuSparse MatriuSparse::operator+(const MatriuSparse &e) {
-    return MatriuSparse();
-}
-
-MatriuSparse MatriuSparse::operator-(const MatriuSparse &e) {
-    return MatriuSparse();
-}
-
-MatriuSparse MatriuSparse::operator*(const MatriuSparse &e) { // this function is not needed
-    if (this->nCol_ != e.nRow_) throw "Producte invalid, el numero de files no es igual al de columnes";
-    MatriuSparse res(this->nRow_, e.nCol_);
-    float suma = 0;
-    int index = -1;
-    for (int i = 0; i < this->nRow_; i++) {
-        for (int j = 0; j < e.nCol_; j++) {
-            for (int z = 0; z < nCol_; z++) {
-                suma += getVal(i, z) * e.getVal(z, j);
-            }
-            res.setVal(i, j, suma);
-            suma = 0;
-        }
-    }
-    return res;
-}
-
 MatriuSparse MatriuSparse::operator*(const float &e) {
     MatriuSparse res(*this);
-    if (cmpFloat(e, 0)) { // delete matriz when we multiply by 0
+    if (cmpFloat(e, 0)) { // delete matrix when we multiply by 0
         init(0, 0);
     } else {
-        for (auto &i : res.columnValors_) // the same as: for (vector<pair<int,float>>::iterator it = res.columnValors_.begin(); it != res.columnValors_.end(); it++)
+        for (auto &i : res.columnValors_)
             i.second *= e;
     }
     return res;
@@ -169,7 +142,6 @@ void MatriuSparse::calculaDendograms(std::vector<Tree<double> *> &vDendrogrames)
 }
 
 typedef std::pair<std::pair<int, int>, double> mapIter;
-//typedef std::pair<int, int> make_pair;
 
 void MatriuSparse::creaMaps(std::vector<std::map<pair<int, int>, double>> &vMaps) const {
     vMaps.resize(getNFiles());
@@ -220,17 +192,6 @@ void MatriuSparse::insertValue(const int &row, const int &col, const int &value)
 
 After removing the value (3,3)
 
-0 0
-0 1
-
-//temp fix for bug: 
-0 0 0 0
-0 1 0 0
-0 0 0 0
-0 0 0 1
-
-After removing the value (3,3)
-
 0 0 0 0
 0 1 0 0
 0 0 0 0
@@ -239,14 +200,6 @@ After removing the value (3,3)
 */
 void MatriuSparse::removeValue(const int &row, const int &col) {
     int i = binarySearch(row, col);
-    /*
-        0 0 0 0 1        0 0 0 0 1           0 0 0             0 0
-        0 1 0 0 0        0 1 0 0 0           0 1 0             0 1
-        setVal(1,1,0)    setVal(0,4,0)       0 0 1             setVal(1,1,0)
-        0 0 0 0 1        0 0                 setVal(2,2,0)     delete matrix
-                         0 1                 0 0
-                                             0 1
-        */
     if (i >= 0) {
         columnValors_.erase(columnValors_.begin() + i);
         if (row + 1 != nRow_) {
@@ -254,39 +207,6 @@ void MatriuSparse::removeValue(const int &row, const int &col) {
                 rowIndex_[i]--;
         } else {
             rowIndex_[row + 1]--;
-            //if (rowIndex_[row] - rowIndex_[row + 1] == 0) {
-            //    rowIndex_.pop_back();
-            //nRow_--;
-            //}
-        }
-        if (columnValors_.size() > 0) {
-            if (col + 1 == nCol_ && numberOfValuesInColumn(col) == 0) {
-                int maxCol = columnValors_[rowIndex_[1] - 1].first;
-                for (int i = 0; i < nRow_; i++) {
-                    if (columnValors_[rowIndex_[i + 1] - 1].first > maxCol)
-                        maxCol = columnValors_[rowIndex_[i + 1] - 1].first;
-                }
-                nCol_ = maxCol + 1;
-            }
-        } else {
-            //nCol_ = 0;
-            //if (rowIndex_[row] - rowIndex_[row + 1] == 0) {
-            //    rowIndex_.pop_back();
-            //    nRow_--;
-            //}
-            //        }
-            //if (columnValors_.size() > 0) {
-            //    if (col + 1 == nCol_ && numberOfValuesInColumn(col) == 0) {
-            //        int maxCol = columnValors_[rowIndex_[1] - 1].first; // bug, rowIndex_[1] - 1 may be negative
-            //        for (size_t z = 0; z < nRow_; z++) {
-            //            if (columnValors_[rowIndex_[z + 1] - 1].first > maxCol)
-            //                maxCol = columnValors_[rowIndex_[z + 1] - 1].first;
-            //        }
-            //        nCol_ = maxCol + 1;
-            //    }
-            //} else {
-            //    nCol_ = 0;
-            //}
         }
         return;
     }

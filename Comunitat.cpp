@@ -7,9 +7,7 @@
 #include <vector>
 
 #define DOUBLE(x) (static_cast<double>(x))
-//pair of pairs, used to iterate througth a map of deltaQ_
 typedef std::pair<std::pair<int, int>, double> mapIter;
-//typedef std::pair<int, int> make_pair;
 
 Comunitat::Comunitat(MatriuSparse *pMAdj) {
     primComdeltaQ_ = -1;

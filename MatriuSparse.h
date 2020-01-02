@@ -3,7 +3,6 @@
 #include <fstream>
 #include <iostream>
 #include <map>
-#include <set>
 #include <string>
 #include <vector>
 using namespace std;
@@ -21,9 +20,6 @@ class MatriuSparse {
     void init(const int &row, const int &col);
     friend std::ostream &operator<<(std::ostream &a, const MatriuSparse &e);
     friend std::ofstream &operator<<(std::ofstream &a, const MatriuSparse &e);
-    MatriuSparse operator+(const MatriuSparse &e);
-    MatriuSparse operator-(const MatriuSparse &e);
-    MatriuSparse operator*(const MatriuSparse &e);
     MatriuSparse operator*(const float &e);
     std::vector<float> operator*(const std::vector<float> &e);
     MatriuSparse operator/(const float &e);
@@ -32,7 +28,7 @@ class MatriuSparse {
     void setRow(const int &e);
     void setCol(const int &e);
     void setRowCol(const int &e, const int &a);
-    inline int getNFiles() const { return nCol_ > nRow_ ? nCol_ : nRow_; } // square matrix, return the biggets number
+    inline int getNFiles() const { return nCol_ > nRow_ ? nCol_ : nRow_; }
     inline int getNColumnes() const { return nCol_ > nRow_ ? nCol_ : nRow_; }
     int getNValues() const { return columnValors_.size(); };
     void calculaGrau(std::vector<int> &) const;
