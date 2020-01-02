@@ -30,9 +30,9 @@ class Comunitat {
     void clear();
 
   private:
-    void print_dQmap();
-    bool isDeleted(const int &i);
     void generaDendrogram(int pos1, int pos2, double deltaQp1p2);
+    void maxdQFila(const int &i);
+
     //vector de maps per cada fila de deltaQij
     vector<map<pair<int, int>, double>> deltaQ_;
     //vector que mante llista de comunitats actives amb un parell que indica anterior i seguent activa.

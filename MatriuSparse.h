@@ -34,10 +34,6 @@ class MatriuSparse {
     void setRowCol(const int &e, const int &a);
     inline int getNFiles() const { return nCol_ > nRow_ ? nCol_ : nRow_; } // square matrix, return the biggets number
     inline int getNColumnes() const { return nCol_ > nRow_ ? nCol_ : nRow_; }
-    void getVeins(const int &i, const int &j,
-                  std::set<int> &veinsComuns,
-                  std::set<int> &veinsNomesDe_i,
-                  std::set<int> &veinsNomesDe_j) const;
     int getNValues() const { return columnValors_.size(); };
     void calculaGrau(std::vector<int> &) const;
     void calculaDendograms(std::vector<Tree<double> *> &) const;

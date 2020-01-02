@@ -156,39 +156,6 @@ MatriuSparse MatriuSparse::operator/(const float &e) {
 
     return res;
 }
-/*
-Busca els veins dels arguments i els retorna en una parella de sets
-first = set de veins del node1
-second = set de veins del node2
-*/
-void MatriuSparse::getVeins(const int &i, const int &j,
-                            std::set<int> &veinsComuns,
-                            std::set<int> &veinsDe_i,
-                            std::set<int> &veinsDe_j) const {
-
-    //std::set<int> veinsDe_i, veinsDe_j;
-    for (size_t k = rowIndex_[i]; k < rowIndex_[i + 1]; k++) {
-        //if (columnValors_[k].first != j)
-        veinsDe_i.insert(columnValors_[k].first);
-    }
-    for (size_t k = rowIndex_[j]; k < rowIndex_[j + 1]; k++) {
-        //if (columnValors_[k].first != i)
-        veinsDe_j.insert(columnValors_[k].first);
-    }
-
-    std::set_intersection(veinsDe_i.cbegin(), veinsDe_i.cend(),
-                          veinsDe_j.cbegin(), veinsDe_j.cend(),
-                          std::inserter(veinsComuns, veinsComuns.begin()));
-
-    //std::set_difference(veinsDe_i.cbegin(), veinsDe_i.cend(),
-    //                    veinsComuns.cbegin(), veinsComuns.cend(),
-    //                    std::inserter(veinsNomesDe_i, veinsNomesDe_i.begin()));
-
-    //std::set_difference(veinsDe_j.cbegin(), veinsDe_j.cend(),
-    //                    veinsComuns.cbegin(), veinsComuns.cend(),
-    //                    std::inserter(veinsNomesDe_j, veinsNomesDe_j.begin()));
-}
-
 void MatriuSparse::calculaGrau(std::vector<int> &graus) const {
     graus.resize(rowIndex_.size() - 1);
     for (size_t i = 0; i < rowIndex_.size() - 1; i++)
@@ -366,14 +333,14 @@ T &format(T &a, const MatriuSparse &e) {
 }
 
 std::ostream &operator<<(std::ostream &a, const MatriuSparse &e) {
-    float colVal = 0;
-    for (int i = 0; i < e.nRow_; i++) {
-        for (int j = 0; j < e.nCol_; j++) {
-            e.getVal(i, j, colVal);
-            a << colVal << " ";
-        }
-        a << "\n";
-    }
+    //float colVal = 0;
+    //for (int i = 0; i < e.nRow_; i++) {
+    //    for (int j = 0; j < e.nCol_; j++) {
+    //        e.getVal(i, j, colVal);
+    //        a << colVal << " ";
+    //    }
+    //    a << "\n";
+    //}
     return a;
     //return format<std::ostream>(a, e);
 }
